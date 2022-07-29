@@ -276,6 +276,8 @@ if __name__ == "__main__":
     nb = int(sys.argv[3]) if len(sys.argv)>3 else 1
     save_folder = str(sys.argv[4]) if len(sys.argv) > 4 else "results"
 
+    os.makedirs(save_folder, exist_ok=True)
+
     diffusion = Diffusion.from_pretrained(name)
     for ib in tqdm.tqdm(range(nb), desc="Batch"):
         x = diffusion.denoise(bs, progress_bar=tqdm.tqdm)
