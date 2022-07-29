@@ -1,0 +1,6 @@
+.idea/
+*/__pycache__/
+.Trash-1000
+__pycache__/
+*/build/
+*/*.egg
