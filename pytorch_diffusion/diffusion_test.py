@@ -286,7 +286,7 @@ class DiffusionRNN(Diffusion):
 
 if __name__ == "__main__":
     import sys
-    from tqdm import tqdm as tqdma
+    from tqdm.autonotebook import tqdm as tqdma
     name = sys.argv[1] if len(sys.argv)>1 else "cifar10"
     bs = int(sys.argv[2]) if len(sys.argv)>2 else 1
     nb = int(sys.argv[3]) if len(sys.argv)>3 else 1
