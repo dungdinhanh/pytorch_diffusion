@@ -6,3 +6,4 @@ __pycache__/
 */*.egg
 temp_data/
 results
+src/
