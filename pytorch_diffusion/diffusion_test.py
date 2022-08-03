@@ -222,6 +222,7 @@ class Diffusion(object):
                                        posterior_mean_coef1=self.posterior_mean_coef1,
                                        posterior_mean_coef2=self.posterior_mean_coef2,
                                        return_pred_xstart=True)
+                print("loop through")
                 callback(x, i, x0=x0)
 
             return x
