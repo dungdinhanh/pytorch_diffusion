@@ -286,7 +286,7 @@ class DiffusionRNN(Diffusion):
 
 if __name__ == "__main__":
     import sys
-    import tqdm.autonotebook as tqdma
+    from tqdm import trange
     name = sys.argv[1] if len(sys.argv)>1 else "cifar10"
     bs = int(sys.argv[2]) if len(sys.argv)>2 else 1
     nb = int(sys.argv[3]) if len(sys.argv)>3 else 1
@@ -296,8 +296,8 @@ if __name__ == "__main__":
 
     diffusion = DiffusionRNN.from_pretrained(name)
 
-    for ib in tqdma.tqdm(range(nb), desc="Batch"):
-        x = diffusion.denoise(bs, progress_bar=tqdma.tqdm)
+    for ib in trange(range(nb), desc="Batch"):
+        x = diffusion.denoise(bs, progress_bar=trange)
 
 
         # idx = ib*bs
