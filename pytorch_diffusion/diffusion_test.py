@@ -66,10 +66,10 @@ def denoising_step(x, t, *,
     # instead of using eq. (11) directly, follow original implementation which,
     # equivalently, predicts x_0 and uses it to compute mean of the posterior
     # 1. predict eps via model
-    # model_output = model.forward_down_mid(x, t)
-    # print(model_output.shape)
-    # exit(0)
-    model_output = model.forward(x, t)
+    model_output = model.forward_down_mid(x, t)
+    print(model_output.shape)
+    exit(0)
+    # model_output = model.forward(x, t)
     # 2. predict clipped x_0
     # (follows from x_t=sqrt_alpha_cumprod*x_0 + sqrt_one_minus_alpha*eps)
     pred_xstart = (extract(sqrt_recip_alphas_cumprod, t, x.shape)*x -
