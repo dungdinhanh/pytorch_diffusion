@@ -1,0 +1,5 @@
+torch
+numpy
+requests
+tqdm
+streamlit
