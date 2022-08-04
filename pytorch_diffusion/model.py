@@ -217,6 +217,7 @@ class Model(nn.Module):
                                        padding=1)
 
         curr_res = resolution
+        self.emb_res = curr_res
         in_ch_mult = (1,)+ch_mult
         self.down = nn.ModuleList()
         for i_level in range(self.num_resolutions):
@@ -238,6 +239,7 @@ class Model(nn.Module):
             if i_level != self.num_resolutions-1:
                 down.downsample = Downsample(block_in, resamp_with_conv)
                 curr_res = curr_res // 2
+                self.emb_res = curr_res
             self.down.append(down)
 
         # middle
@@ -251,6 +253,7 @@ class Model(nn.Module):
                                        out_channels=block_in,
                                        temb_channels=self.temb_ch,
                                        dropout=dropout)
+        self.emb_channel = block_in
 
         # upsampling
         self.up = nn.ModuleList()
@@ -337,8 +340,13 @@ class ModelRNN(Model):
                                        attn_resolutions=attn_resolutions, dropout=dropout,
                                        resamp_with_conv=resamp_with_conv,
                                        in_channels=in_channels, resolution=resolution)
+        self.emb_layer = Downsample(self.emb_channel, resamp_with_conv)
+        self.dec_layer = Upsample(self.emb_channel, resamp_with_conv)
+        self.emb_res = self.emb_res//2
 
-        lstm_cell = nn.LSTMCell(input_emb_size, hidden_size)
+        print(input_emb_size * self.emb_res * self.emb_res)
+        exit(0)
+        self.lstm_cell = nn.LSTMCell(input_emb_size * self.emb_res * self.emb_res, hidden_size)
 
     def forward_down_mid(self, x, t):
         assert x.shape[2] == x.shape[3] == self.resolution
@@ -367,4 +375,10 @@ class ModelRNN(Model):
         h = self.mid.block_2(h, temb)
 
         return h
+
+    def forward_rnn(self, h, t):
+        pass
+
+
+
 
