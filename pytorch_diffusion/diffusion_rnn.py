@@ -29,7 +29,7 @@ class DiffusionRNN(Diffusion):
 
     def inference(self, n):
         self.model_rnn.eval()
-        x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution)
+        x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
         t = (torch.ones(n) * 0).to(self.device)
         x, hs, temb = self.model.forward_down_mid(x_0, t)
 
