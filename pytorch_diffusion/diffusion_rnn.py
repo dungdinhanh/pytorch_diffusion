@@ -47,7 +47,7 @@ class DiffusionRNN(Diffusion):
             x = x_prime
         x_final = self.model.forward_up(x_prime_up, hs, temb)
 
-        return x + x_final
+        return x_0 + x_final
 
     @classmethod
     def from_pretrained(cls, name, train=True ,device=None):
