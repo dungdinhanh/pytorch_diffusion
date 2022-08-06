@@ -332,21 +332,15 @@ class Model(nn.Module):
         return h
 
 
-class ModelRNN(Model):
+class ModelExtract(Model):
     def __init__(self, *, ch, out_ch, ch_mult=(1,2,4,8), num_res_blocks,
                  attn_resolutions, dropout=0.0, resamp_with_conv=True, in_channels,
-                 resolution, input_emb_size=256, hidden_size=128):
-        super(ModelRNN, self).__init__(ch=ch, out_ch=out_ch, ch_mult=ch_mult, num_res_blocks=num_res_blocks,
+                 resolution):
+        super(ModelExtract, self).__init__(ch=ch, out_ch=out_ch, ch_mult=ch_mult, num_res_blocks=num_res_blocks,
                                        attn_resolutions=attn_resolutions, dropout=dropout,
                                        resamp_with_conv=resamp_with_conv,
                                        in_channels=in_channels, resolution=resolution)
-        self.emb_layer = Downsample(self.emb_channel, resamp_with_conv)
-        self.dec_layer = Upsample(self.emb_channel, resamp_with_conv)
-        self.emb_res = self.emb_res//2
 
-        print(input_emb_size * self.emb_res * self.emb_res)
-        exit(0)
-        self.lstm_cell = nn.LSTMCell(input_emb_size * self.emb_res * self.emb_res, hidden_size)
 
     def forward_down_mid(self, x, t):
         assert x.shape[2] == x.shape[3] == self.resolution
@@ -373,11 +367,87 @@ class ModelRNN(Model):
         h = self.mid.block_1(h, temb)
         h = self.mid.attn_1(h)
         h = self.mid.block_2(h, temb)
+        return h, hs, temb
 
+    def forward_up(self, x, hs, temb):
+        h = x
+        # upsampling
+        for i_level in reversed(range(self.num_resolutions)):
+            for i_block in range(self.num_res_blocks + 1):
+                h = self.up[i_level].block[i_block](
+                    torch.cat([h, hs.pop()], dim=1), temb)
+                if len(self.up[i_level].attn) > 0:
+                    h = self.up[i_level].attn[i_block](h)
+            if i_level != 0:
+                h = self.up[i_level].upsample(h)
+
+        # end
+        h = self.norm_out(h)
+        h = nonlinearity(h)
+        h = self.conv_out(h)
         return h
 
-    def forward_rnn(self, h, t):
-        pass
+
+def sample_newx(h, c, t):
+    '''
+    Simple schems to achieve new x from h, c and t
+    '''
+    random_values = torch.rand_like(h)
+    return c + random_values * h
+
+
+class ModelRNN(nn.Module):
+    def __init__(self, emb_features_size, emb_channels, resamp_with_conv=True):
+        '''
+        Input: a features from the bottleneck of Ushape network
+        Process:
+        1. Downsample the features via cnn
+        2. Forward through RNN
+        3. Upsample features via cnn
+        '''
+
+        super().__init__()
+        self.emb_res = emb_features_size
+        self.emb_channels = emb_channels
+
+        # downsampling and upsampling
+        self.emb_layer = Downsample(self.emb_channel, resamp_with_conv)
+        self.dec_layer = Upsample(self.emb_channel, resamp_with_conv)
+        self.emb_res_hidden = self.emb_res // 2
+
+        self.size_rnn_hidden = self.emb_channels * self.emb_res_hidden * self.emb_res_hidden
+        self.size_rnn_io_hidden = [-1, self.emb_channels, self.emb_res_hidden, self.emb_res_hidden]
+        self.size_rnn_output_flatten = self.emb_channels * (self.emb_res ** 2)
+        self.size_rnn_output = [-1, self.emb_channels, self.emb_res, self.emb_res]
+
+        # input size equal to the hidden size to avoid using another autoencoder
+        self.lstm_cell = nn.LSTMCell(self.size_rnn_hidden, self.size_rnn_hidden)
+
+    def forward(self, x, h, down_sample=False, up_sample=False):
+        if down_sample:
+            x = self.emb_layer(x)
+        x = torch.flatten(x, start_dim=1)
+
+        # To make sure down sample at the right time
+        assert int(x[0].shape[0]) == self.size_rnn_hidden
+
+        h, c = self.lstm_cell(x, h)
+        x_prime = sample_newx(h, c, None)
+        if up_sample:
+            # reshape here
+            re_x_prime = torch.reshape(x_prime, self.size_rnn_output)
+            out_x_prime = self.dec_layer(re_x_prime)
+        else:
+            out_x_prime = None
+        return h, c, x_prime, out_x_prime
+
+
+
+
+
+
+
+
 
 
 

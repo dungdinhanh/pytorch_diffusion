@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from pytorch_diffusion.model import Model
+from pytorch_diffusion.model import Model, ModelExtract, ModelRNN
 from pytorch_diffusion.ckpt_util import get_ckpt_path
 import os
 
@@ -11,10 +11,10 @@ def get_beta_schedule(beta_schedule, *, beta_start, beta_end, num_diffusion_time
         betas = np.linspace(beta_start ** 0.5, beta_end ** 0.5, num_diffusion_timesteps, dtype=np.float64) ** 2
     elif beta_schedule == 'linear':
         betas = np.linspace(beta_start, beta_end, num_diffusion_timesteps, dtype=np.float64)
-    elif beta_schedule == 'warmup10':
-        betas = _warmup_beta(beta_start, beta_end, num_diffusion_timesteps, 0.1)
-    elif beta_schedule == 'warmup50':
-        betas = _warmup_beta(beta_start, beta_end, num_diffusion_timesteps, 0.5)
+    # elif beta_schedule == 'warmup10':
+    #     betas = _warmup_beta(beta_start, beta_end, num_diffusion_timesteps, 0.1)
+    # elif beta_schedule == 'warmup50':
+    #     betas = _warmup_beta(beta_start, beta_end, num_diffusion_timesteps, 0.5)
     elif beta_schedule == 'const':
         betas = beta_end * np.ones(num_diffusion_timesteps, dtype=np.float64)
     elif beta_schedule == 'jsd':  # 1/T, 1/(T-1), 1/(T-2), ..., 1
@@ -90,9 +90,12 @@ def denoising_step(x, t, *,
 
 
 class Diffusion(object):
-    def __init__(self, diffusion_config, model_config, device=None):
+    def __init__(self, diffusion_config, model_config, device=None, extract_version=False):
         self.init_diffusion_parameters(**diffusion_config)
-        self.model = Model(**model_config)
+        if extract_version:
+            self.model = ModelExtract(**model_config)
+        else:
+            self.model = Model(**model_config)
         if device is None:
             device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         self.device = device
