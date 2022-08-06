@@ -431,7 +431,7 @@ class ModelRNN(nn.Module):
         # To make sure down sample at the right time
         assert int(x[0].shape[0]) == self.size_rnn_hidden
 
-        h, c = self.lstm_cell(x, h)
+        h, c = self.lstm_cell(x, hx)
         x_prime = sample_newx(h, c, None)
         if up_sample:
             # reshape here
