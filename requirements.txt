@@ -2,3 +2,4 @@ torch
 numpy
 requests
 tqdm
+pytorch-fid
