@@ -411,8 +411,8 @@ class ModelRNN(nn.Module):
         self.emb_channels = emb_channels
 
         # downsampling and upsampling
-        self.emb_layer = Downsample(self.emb_channel, resamp_with_conv)
-        self.dec_layer = Upsample(self.emb_channel, resamp_with_conv)
+        self.emb_layer = Downsample(self.emb_channels, resamp_with_conv)
+        self.dec_layer = Upsample(self.emb_channels, resamp_with_conv)
         self.emb_res_hidden = self.emb_res // 2
 
         self.size_rnn_hidden = self.emb_channels * self.emb_res_hidden * self.emb_res_hidden
