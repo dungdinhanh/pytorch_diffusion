@@ -437,6 +437,7 @@ class ModelRNN(nn.Module):
             # reshape here
             re_x_prime = torch.reshape(x_prime, self.size_rnn_output)
             out_x_prime = self.dec_layer(re_x_prime)
+            print(self.size_rnn_output)
             print(out_x_prime.shape)
             exit(0)
         else:
