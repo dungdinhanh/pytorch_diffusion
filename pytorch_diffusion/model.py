@@ -435,11 +435,8 @@ class ModelRNN(nn.Module):
         x_prime = sample_newx(h, c, None)
         if up_sample:
             # reshape here
-            re_x_prime = torch.reshape(x_prime, self.size_rnn_output)
+            re_x_prime = torch.reshape(x_prime, self.size_rnn_io_hidden)
             out_x_prime = self.dec_layer(re_x_prime)
-            print(self.size_rnn_output)
-            print(out_x_prime.shape)
-            exit(0)
         else:
             out_x_prime = None
         return h, c, x_prime, out_x_prime
