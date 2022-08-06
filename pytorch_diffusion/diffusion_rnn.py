@@ -30,7 +30,8 @@ class DiffusionRNN(Diffusion):
     def inference(self, n):
         self.model_rnn.eval()
         x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution)
-        x, hs, temb = self.model.forward_down_mid(x_0, 0)
+        t = (torch.ones(n) * 0).to(self.device)
+        x, hs, temb = self.model.forward_down_mid(x_0, t)
 
         for i in range(self.num_timesteps):
             downs = False
@@ -47,8 +48,63 @@ class DiffusionRNN(Diffusion):
 
         return x + x_final
 
+    @classmethod
+    def from_pretrained(cls, name, train=True ,device=None):
+        cifar10_cfg = {
+            "resolution": 32,
+            "in_channels": 3,
+            "out_ch": 3,
+            "ch": 128,
+            "ch_mult": (1, 2, 2, 2),
+            "num_res_blocks": 2,
+            "attn_resolutions": (16,),
+            "dropout": 0.1,
+        }
+        lsun_cfg = {
+            "resolution": 256,
+            "in_channels": 3,
+            "out_ch": 3,
+            "ch": 128,
+            "ch_mult": (1, 1, 2, 2, 4, 4),
+            "num_res_blocks": 2,
+            "attn_resolutions": (16,),
+            "dropout": 0.0,
+        }
 
+        model_config_map = {
+            "cifar10": cifar10_cfg,
+            "lsun_bedroom": lsun_cfg,
+            "lsun_cat": lsun_cfg,
+            "lsun_church": lsun_cfg,
+        }
 
+        diffusion_config = {
+            "beta_schedule": "linear",
+            "beta_start": 0.0001,
+            "beta_end": 0.02,
+            "num_diffusion_timesteps": 1000,
+        }
+        model_var_type_map = {
+            "cifar10": "fixedlarge",
+            "lsun_bedroom": "fixedsmall",
+            "lsun_cat": "fixedsmall",
+            "lsun_church": "fixedsmall",
+        }
+        ema = name.startswith("ema_")
+        basename = name[len("ema_"):] if ema else name
+        diffusion_config["model_var_type"] = model_var_type_map[basename]
+
+        print("Instantiating")
+        # later will add rnn configs for training
+        diffusion = cls(diffusion_config, model_config_map[basename], device, train)
+
+        ckpt = get_ckpt_path(name)
+        print("Loading checkpoint {}".format(ckpt))
+        diffusion.model.load_state_dict(torch.load(ckpt, map_location=diffusion.device))
+        diffusion.model.to(diffusion.device)
+        diffusion.model.eval()
+        print("Moved model to {}".format(diffusion.device))
+        return diffusion
 
 
 
