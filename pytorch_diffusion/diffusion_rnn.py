@@ -2,6 +2,7 @@ from pytorch_diffusion.diffusion import *
 import os
 import torch.optim as optim
 import time
+from   datasets.data_helper import *
 
 
 class DiffusionRNN(Diffusion):
