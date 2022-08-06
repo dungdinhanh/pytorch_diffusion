@@ -423,7 +423,7 @@ class ModelRNN(nn.Module):
         # input size equal to the hidden size to avoid using another autoencoder
         self.lstm_cell = nn.LSTMCell(self.size_rnn_hidden, self.size_rnn_hidden)
 
-    def forward(self, x, h, down_sample=False, up_sample=False):
+    def forward(self, x, hx, down_sample=False, up_sample=False):
         if down_sample:
             x = self.emb_layer(x)
         x = torch.flatten(x, start_dim=1)

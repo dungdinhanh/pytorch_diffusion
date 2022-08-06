@@ -39,10 +39,11 @@ class DiffusionRNN(Diffusion):
             ups=False
             if i == 0:
                 downs = True
-                h = None
+                hx = None
             if i == (self.num_timesteps - 1):
                 ups = True
-            h, c, x_prime, _ = self.model_rnn(x, h, downs, ups)
+            h, c, x_prime, _ = self.model_rnn(x, hx, downs, ups)
+            hx = (h, c)
             x = x_prime
 
         x_final = self.model.forward_up(x, hs, temb)
