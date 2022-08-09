@@ -3,6 +3,43 @@ import os
 import torch.optim as optim
 import time
 from   datasets.data_helper import *
+import random
+
+
+def denoising_step_rnn(model_sc_output, x, t,*,
+                   logvar,
+                   sqrt_recip_alphas_cumprod,
+                   sqrt_recipm1_alphas_cumprod,
+                   posterior_mean_coef1,
+                   posterior_mean_coef2,
+                   return_pred_xstart=False):
+    """
+    Sample from p(x_{t-1} | x_t)
+    """
+    # instead of using eq. (11) directly, follow original implementation which,
+    # equivalently, predicts x_0 and uses it to compute mean of the posterior
+    # 1. predict eps via model
+    model_output = model_sc_output
+    # 2. predict clipped x_0
+    # (follows from x_t=sqrt_alpha_cumprod*x_0 + sqrt_one_minus_alpha*eps)
+    pred_xstart = (extract(sqrt_recip_alphas_cumprod, t, x.shape)*x -
+                   extract(sqrt_recipm1_alphas_cumprod, t, x.shape)*model_output)
+    pred_xstart = torch.clamp(pred_xstart, -1, 1)
+    # 3. compute mean of q(x_{t-1} | x_t, x_0) (eq. (6))
+    mean = (extract(posterior_mean_coef1, t, x.shape)*pred_xstart +
+            extract(posterior_mean_coef2, t, x.shape)*x)
+
+    logvar = extract(logvar, t, x.shape)
+
+    # sample - return mean for t==0
+    noise = torch.randn_like(x)
+    mask = 1-(t==0).float()
+    mask = mask.reshape((x.shape[0],)+(1,)*(len(x.shape)-1))
+    sample = mean + mask*torch.exp(0.5*logvar)*noise
+    sample = sample.float()
+    if return_pred_xstart:
+        return sample, mean, pred_xstart
+    return sample, mean
 
 
 class DiffusionRNN(Diffusion):
@@ -28,12 +65,86 @@ class DiffusionRNN(Diffusion):
         # will change later to see performance
         self.loss_function = torch.nn.MSELoss(reduction='mean')
 
+    def training(self, n, number_of_iters=10000):
+        self.model_rnn.train()
+        self.model.eval()
+        for i in range(number_of_iters):
+            rand_number_timesteps = random.randint(5, self.num_timesteps-1)
+            start=0
+            x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
+            x = x_0
+
+            t = (torch.ones(n) * 0).to(self.device)
+            h_emb, hs_0, temb_0 = self.model.forward_down_mid(x, t)
+            model_sc_output = self.model.forward_up(h_emb, hs_0, temb_0)
+            sample, mean, xpred = denoising_step_rnn(
+                model_sc_output=model_sc_output,
+                x=x,
+                t=t,
+                logvar=self.logvar,
+                sqrt_recip_alphas_cumprod=self.sqrt_recip_alphas_cumprod,
+                sqrt_recipm1_alphas_cumprod=self.sqrt_recipm1_alphas_cumprod,
+                posterior_mean_coef1=self.posterior_mean_coef1,
+                posterior_mean_coef2=self.posterior_mean_coef2,
+                return_pred_xstart=True)
+
+            x = sample
+            start = 1
+            hx = None
+            for j in range(start, rand_number_timesteps, 1):
+                t = (torch.ones(n)* j).to(self.device)
+                h, hs, temb = self.model.forward_down_mid(x, t)
+                model_sc_output = self.model.forward_up(h, hs, temb)
+                if j == 0:
+                    down_sample=True
+                else:
+                    down_sample=False
+                up_sample=True
+
+                h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
+                hx = (h_rnn,c_rnn)
+                h_emb = x_prime
+
+                model_rnn_output = self.model.forward_up(out_x_prime, hs, temb)
+
+                sample_rnn, mean_rnn, xpred_rnn = denoising_step_rnn(
+                                                                model_rnn_output,
+                                                                x=x,
+                                                                t=t,
+                                                                logvar=self.logvar,
+                                                                sqrt_recip_alphas_cumprod=
+                                                                self.sqrt_recip_alphas_cumprod,
+                                                                sqrt_recipm1_alphas_cumprod=
+                                                                self.sqrt_recipm1_alphas_cumprod,
+                                                                posterior_mean_coef1=self.posterior_mean_coef1,
+                                                                posterior_mean_coef2=self.posterior_mean_coef2,
+                                                                return_pred_xstart=True)
+
+                sample, mean, xpred = denoising_step_rnn(
+                                                model_sc_output=model_sc_output,
+                                                x=x,
+                                                t=t,
+                                                logvar=self.logvar,
+                                                sqrt_recip_alphas_cumprod=self.sqrt_recip_alphas_cumprod,
+                                                sqrt_recipm1_alphas_cumprod=self.sqrt_recipm1_alphas_cumprod,
+                                                posterior_mean_coef1=self.posterior_mean_coef1,
+                                                posterior_mean_coef2=self.posterior_mean_coef2,
+                                                return_pred_xstart=True)
+
+                x = sample
+
+
+
+            pass
+        pass
+
+
     def inference(self, n):
         self.model_rnn.eval()
         x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
         t = (torch.ones(n) * 0).to(self.device)
-        x, hs, temb = self.model.forward_down_mid(x_0, t)
-
+        h_0, hs_0, temb_0 = self.model.forward_down_mid(x_0, t)
+        h = h_0
         for i in range(self.num_timesteps):
             downs = False
             ups=False
@@ -42,11 +153,11 @@ class DiffusionRNN(Diffusion):
                 hx = None
             if i == (self.num_timesteps - 1):
                 ups = True
-            h, c, x_prime, x_prime_up = self.model_rnn(x, hx, downs, ups)
-            hx = (h, c)
-            x = x_prime
-        x_final = self.model.forward_up(x_prime_up, hs, temb)
-
+            h_rnn, c_rnn, h_prime_sample, h_prime = self.model_rnn(h, hx, downs, ups)
+            hx = (h_rnn, c_rnn)
+            h = h_prime_sample
+        x_final = self.model.forward_up(h_prime, hs_0, temb_0)
+        # must change the return later depends on the design of training
         return x_0 + x_final
 
     @classmethod
