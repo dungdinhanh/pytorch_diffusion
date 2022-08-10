@@ -79,6 +79,9 @@ class DiffusionRNN(Diffusion):
             x = x_0
 
             t = (torch.ones(n) * 0).to(self.device)
+            print("before training")
+            print(x.shape)
+            print("----------------------------------------")
             h_emb, hs_0, temb_0 = self.model.forward_down_mid(x, t)
             model_sc_output = self.model.forward_up(h_emb, hs_0, temb_0)
             sample, mean, xpred = denoising_step_rnn(
@@ -100,6 +103,9 @@ class DiffusionRNN(Diffusion):
             loss_iter = 0.0
             loss_accumulate = 0.0
             for j in range(start, rand_number_timesteps, 1):
+                print("iter %d"%j)
+                print(x.shape)
+                print("0---------------------------------------")
                 t = (torch.ones(n)* j).to(self.device)
                 h, hs, temb = self.model.forward_down_mid(x, t)
                 model_sc_output = self.model.forward_up(h, hs, temb)
