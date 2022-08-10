@@ -42,6 +42,10 @@ def denoising_step_rnn(model_sc_output, x, t,*,
     return sample, mean
 
 
+def avg_accumulate(h_emb_cal, n, h_emb):
+    return (h_emb_cal + h_emb)/(n+1), n+1
+
+
 class DiffusionRNN(Diffusion):
     def __init__(self, diffusion_config, model_config, device=None, train=True,
                  lr=0.01, weight_decay=1e-4, data_loader=None):
@@ -91,6 +95,10 @@ class DiffusionRNN(Diffusion):
             x = sample
             start = 1
             hx = None
+            h_emb_accumulate = None
+            n = 0
+            loss_iter = 0.0
+            loss_accumulate = 0.0
             for j in range(start, rand_number_timesteps, 1):
                 t = (torch.ones(n)* j).to(self.device)
                 h, hs, temb = self.model.forward_down_mid(x, t)
@@ -104,6 +112,29 @@ class DiffusionRNN(Diffusion):
                 h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
                 hx = (h_rnn,c_rnn)
                 h_emb = x_prime
+
+                if h_emb_accumulate is None:
+                    h_emb_accumulate = torch.zeros_like(h_emb).to(self.device)
+                    n = 0
+
+                h_emb_accumulate, n = avg_accumulate(h_emb_accumulate, n, h_emb)
+                c_h_emb_accumulate = c_rnn + torch.rand_like(h_emb_accumulate) * h_emb_accumulate
+
+                accumulate_x_prime = self.model_rnn.forward_dec(c_h_emb_accumulate)
+
+                model_accumulate_output = self.model.forward_up(accumulate_x_prime, hs_0, temb_0)
+                sample_accumulate, mean_accumulate, xpred_accumulate = denoising_step_rnn(
+                                                                model_accumulate_output,
+                                                                x=x,
+                                                                t=t,
+                                                                logvar=self.logvar,
+                                                                sqrt_recip_alphas_cumprod=
+                                                                self.sqrt_recip_alphas_cumprod,
+                                                                sqrt_recipm1_alphas_cumprod=
+                                                                self.sqrt_recipm1_alphas_cumprod,
+                                                                posterior_mean_coef1=self.posterior_mean_coef1,
+                                                                posterior_mean_coef2=self.posterior_mean_coef2,
+                                                                return_pred_xstart=True)
 
                 model_rnn_output = self.model.forward_up(out_x_prime, hs, temb)
 
@@ -133,10 +164,12 @@ class DiffusionRNN(Diffusion):
 
                 x = sample
 
-
-
-            pass
-        pass
+                loss_iter += self.loss_function(mean_rnn, mean)
+                loss_accumulate += self.loss_function(mean_accumulate, mean)
+            self.optimizer.zero_grad()
+            final_loss = loss_iter + loss_accumulate
+            final_loss.backward()
+            self.optimizer.step()
 
 
     def inference(self, n):

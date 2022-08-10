@@ -441,6 +441,11 @@ class ModelRNN(nn.Module):
             out_x_prime = None
         return h, c, x_prime, out_x_prime
 
+    def forward_dec(self, x_prime):
+        re_x_prime = torch.reshape(x_prime, self.size_rnn_io_hidden)
+        out_x_prime = self.dec_layer(re_x_prime)
+        return out_x_prime
+
 
 
 

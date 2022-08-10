@@ -12,17 +12,8 @@ if __name__ == "__main__":
     os.makedirs(save_folder, exist_ok=True)
 
     diffusion = DiffusionRNN.from_pretrained(name)
-    for ib in tqdm.tqdm(range(nb), desc="Batch"):
-        start_time = time.time()
-        x = diffusion.inference(bs)
-        idx = ib*bs
-        exc_time = time.time() - start_time
-        print("%f iter/s"%(1/exc_time))
 
-        image_path = os.path.join(save_folder, name+"/{:06}.png")
+    diffusion.training(bs, nb)
 
-        diffusion.save(x, image_path, start_idx=idx)
 
-        image_path = os.path.join(save_folder, name+"/{:06}.png")
 
-        diffusion.save(x, image_path, start_idx=idx)
