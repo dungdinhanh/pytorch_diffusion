@@ -348,7 +348,7 @@ class ModelExtract(Model):
         # timestep embedding
         temb = get_timestep_embedding(t, self.ch)
         print("___________________")
-        print(temb.shape)
+        print(t.shape)
         print("_____________________")
         temb = self.temb.dense[0](temb)
         temb = nonlinearity(temb)
