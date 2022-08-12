@@ -80,7 +80,7 @@ class DiffusionRNN(Diffusion):
 
             t = (torch.ones(n) * 0).to(self.device)
             h_emb, hs_0, temb_0 = self.model.forward_down_mid(x, t)
-            model_sc_output = self.model.forward_up(h_emb, hs_0[:], temb_0)
+            model_sc_output = self.model.forward_up(h_emb, hs_0, temb_0)
             sample, mean, xpred = denoising_step_rnn(
                 model_sc_output=model_sc_output,
                 x=x,

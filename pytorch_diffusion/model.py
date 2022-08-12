@@ -372,7 +372,7 @@ class ModelExtract(Model):
     def forward_up(self, x, hs, temb):
         h = x
         # upsampling
-        index_hs = len(hs)
+        index_hs = len(hs) - 1
         for i_level in reversed(range(self.num_resolutions)):
             for i_block in range(self.num_res_blocks + 1):
                 h = self.up[i_level].block[i_block](
