@@ -373,9 +373,10 @@ class ModelExtract(Model):
         h = x
         # upsampling
         index_hs = len(hs) - 1
+        print("start____inside forward")
         for i_level in reversed(range(self.num_resolutions)):
             for i_block in range(self.num_res_blocks + 1):
-                print("start____inside forward")
+                print("inside i_block%d"%i_block)
                 h = self.up[i_level].block[i_block](
                     torch.cat([h, hs[index_hs]], dim=1), temb)
                 index_hs -= 1
