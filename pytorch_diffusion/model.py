@@ -372,10 +372,12 @@ class ModelExtract(Model):
     def forward_up(self, x, hs, temb):
         h = x
         # upsampling
+        index_hs = len(hs)
         for i_level in reversed(range(self.num_resolutions)):
             for i_block in range(self.num_res_blocks + 1):
                 h = self.up[i_level].block[i_block](
-                    torch.cat([h, hs.pop()], dim=1), temb)
+                    torch.cat([h, hs[index_hs]], dim=1), temb)
+                index_hs -= 1
                 if len(self.up[i_level].attn) > 0:
                     h = self.up[i_level].attn[i_block](h)
             if i_level != 0:

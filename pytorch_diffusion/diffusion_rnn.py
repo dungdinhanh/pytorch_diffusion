@@ -102,7 +102,7 @@ class DiffusionRNN(Diffusion):
             for j in range(start, rand_number_timesteps, 1):
                 t = (torch.ones(n)* j).to(self.device)
                 h, hs, temb = self.model.forward_down_mid(x, t)
-                model_sc_output = self.model.forward_up(h, hs[:], temb)
+                model_sc_output = self.model.forward_up(h, hs, temb)
                 if j == 1:
                     down_sample=True
                 else:
@@ -122,7 +122,7 @@ class DiffusionRNN(Diffusion):
 
                 accumulate_x_prime = self.model_rnn.forward_dec(c_h_emb_accumulate)
 
-                model_accumulate_output = self.model.forward_up(accumulate_x_prime, hs_0[:], temb_0)
+                model_accumulate_output = self.model.forward_up(accumulate_x_prime, hs_0, temb_0)
                 sample_accumulate, mean_accumulate, xpred_accumulate = denoising_step_rnn(
                                                                 model_accumulate_output,
                                                                 x=x,
@@ -136,7 +136,7 @@ class DiffusionRNN(Diffusion):
                                                                 posterior_mean_coef2=self.posterior_mean_coef2,
                                                                 return_pred_xstart=True)
 
-                model_rnn_output = self.model.forward_up(out_x_prime, hs[:], temb)
+                model_rnn_output = self.model.forward_up(out_x_prime, hs, temb)
 
                 sample_rnn, mean_rnn, xpred_rnn = denoising_step_rnn(
                                                                 model_rnn_output,
