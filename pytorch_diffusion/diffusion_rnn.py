@@ -103,8 +103,15 @@ class DiffusionRNN(Diffusion):
             for j in range(start, rand_number_timesteps, 1):
                 print("step %d"%j)
                 t = (torch.ones(n)* j).to(self.device)
+                print("________________________")
+                print("after init t")
+                print("____________________")
                 h, hs, temb = self.model.forward_down_mid(x, t)
+                print("forward down mid")
+                print("___________________________")
                 model_sc_output = self.model.forward_up(h, hs, temb)
+                print("forward up")
+                print("_______________________")
                 if j == 1:
                     down_sample=True
                 else:
