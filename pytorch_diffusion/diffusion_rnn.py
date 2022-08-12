@@ -103,7 +103,7 @@ class DiffusionRNN(Diffusion):
                 t = (torch.ones(n)* j).to(self.device)
                 h, hs, temb = self.model.forward_down_mid(x, t)
                 model_sc_output = self.model.forward_up(h, hs, temb)
-                if j == 0:
+                if j == 1:
                     down_sample=True
                 else:
                     down_sample=False

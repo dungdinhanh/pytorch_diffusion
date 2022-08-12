@@ -429,9 +429,6 @@ class ModelRNN(nn.Module):
         x = torch.flatten(x, start_dim=1)
 
         # To make sure down sample at the right time
-        print(x[0].shape[0])
-        print("--------------------")
-        print(self.size_rnn_hidden)
         assert int(x[0].shape[0]) == self.size_rnn_hidden
 
         h, c = self.lstm_cell(x, hx)
