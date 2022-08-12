@@ -347,6 +347,9 @@ class ModelExtract(Model):
 
         # timestep embedding
         temb = get_timestep_embedding(t, self.ch)
+        print("___________________")
+        print(temb.shape)
+        print("_____________________")
         temb = self.temb.dense[0](temb)
         temb = nonlinearity(temb)
         temb = self.temb.dense[1](temb)
@@ -355,9 +358,6 @@ class ModelExtract(Model):
         hs = [self.conv_in(x)]
         for i_level in range(self.num_resolutions):
             for i_block in range(self.num_res_blocks):
-                print("_________________")
-                print(temb.shape)
-                print("_________________")
                 h = self.down[i_level].block[i_block](hs[-1], temb)
                 if len(self.down[i_level].attn) > 0:
                     h = self.down[i_level].attn[i_block](h)
