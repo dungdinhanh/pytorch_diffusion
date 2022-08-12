@@ -356,7 +356,7 @@ class ModelExtract(Model):
         for i_level in range(self.num_resolutions):
             for i_block in range(self.num_res_blocks):
                 print("_________________")
-                print(temb.size)
+                print(temb.shape)
                 print("_________________")
                 h = self.down[i_level].block[i_block](hs[-1], temb)
                 if len(self.down[i_level].attn) > 0:
