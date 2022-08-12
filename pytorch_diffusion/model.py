@@ -369,8 +369,7 @@ class ModelExtract(Model):
         h = self.mid.block_2(h, temb)
         return h, hs, temb
 
-    def forward_up(self, x, hs, temb):
-        h = x
+    def forward_up(self, h, hs, temb):
         # upsampling
         index_hs = len(hs) - 1
         print("start____inside forward")
