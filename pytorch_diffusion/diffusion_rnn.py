@@ -73,6 +73,7 @@ class DiffusionRNN(Diffusion):
         self.model_rnn.train()
         self.model.eval()
         for i in range(number_of_iters):
+            print("iter %d"%i)
             rand_number_timesteps = random.randint(5, self.num_timesteps-1)
             start=0
             x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
