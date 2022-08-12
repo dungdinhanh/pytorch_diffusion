@@ -75,7 +75,6 @@ class DiffusionRNN(Diffusion):
         for i in range(number_of_iters):
             print("iter %d"%i)
             rand_number_timesteps = random.randint(5, self.num_timesteps-1)
-            start=0
             x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
             x = x_0
 
@@ -102,7 +101,7 @@ class DiffusionRNN(Diffusion):
             loss_accumulate = 0.0
             for j in range(start, rand_number_timesteps, 1):
                 print("step %d"%j)
-                t = (torch.ones(n)* j).to(self.device)
+                t = (torch.ones(n) * j).to(self.device)
                 print("________________________")
                 print("after init t")
                 print("____________________")
