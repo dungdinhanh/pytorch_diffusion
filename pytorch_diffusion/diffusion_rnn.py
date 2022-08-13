@@ -102,15 +102,8 @@ class DiffusionRNN(Diffusion):
             for j in range(start, rand_number_timesteps, 1):
                 print("step %d"%j)
                 t = (torch.ones(n) * j).to(self.device)
-                print("________________________")
-                print("after init t")
-                print("____________________")
                 h, hs, temb = self.model.forward_down_mid(x, t)
-                print("forward down mid")
-                print("___________________________")
                 model_sc_output = self.model.forward_up(h, hs, temb)
-                print("forward up")
-                print("_______________________")
                 if j == 1:
                     down_sample=True
                 else:
@@ -120,9 +113,6 @@ class DiffusionRNN(Diffusion):
                 h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
                 hx = (h_rnn,c_rnn)
                 h_emb = x_prime
-                print("__________________")
-                print("complete rnn forward")
-                print("__________________")
 
                 if h_emb_accumulate is None:
                     h_emb_accumulate = torch.zeros_like(h_emb).to(self.device)
@@ -146,8 +136,6 @@ class DiffusionRNN(Diffusion):
                                                                 posterior_mean_coef1=self.posterior_mean_coef1,
                                                                 posterior_mean_coef2=self.posterior_mean_coef2,
                                                                 return_pred_xstart=True)
-                print("complete accumulate forward")
-                print("______________________________")
                 model_rnn_output = self.model.forward_up(out_x_prime, hs, temb)
 
                 sample_rnn, mean_rnn, xpred_rnn = denoising_step_rnn(
@@ -162,8 +150,7 @@ class DiffusionRNN(Diffusion):
                                                                 posterior_mean_coef1=self.posterior_mean_coef1,
                                                                 posterior_mean_coef2=self.posterior_mean_coef2,
                                                                 return_pred_xstart=True)
-                print("complete rnn upward")
-                print("____________________________")
+
                 sample, mean, xpred = denoising_step_rnn(
                                                 model_sc_output=model_sc_output,
                                                 x=x,
@@ -176,8 +163,6 @@ class DiffusionRNN(Diffusion):
                                                 return_pred_xstart=True)
 
                 x = sample
-                print("complte all")
-                print("_________________________________")
 
                 loss_iter += self.loss_function(mean_rnn, mean)
                 loss_accumulate += self.loss_function(mean_accumulate, mean)
