@@ -106,7 +106,7 @@ class DiffusionRNN(Diffusion):
                 print(j)
                 print("_________________")
                 t = (torch.ones(n) * j).to(self.device)
-                with torch.no_grad:
+                with torch.no_grad():
                     h, hs, temb = self.model.forward_down_mid(x, t)
                     model_sc_output = self.model.forward_up(h, hs, temb)
                     if j == 1:
