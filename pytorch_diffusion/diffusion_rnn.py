@@ -104,7 +104,6 @@ class DiffusionRNN(Diffusion):
             loss_accumulate = 0.0
             for j in range(start, stop_step, 1):
                 print(j)
-                print(self.model)
                 print("_________________")
                 t = (torch.ones(n) * j).to(self.device)
                 with torch.no_grad:
