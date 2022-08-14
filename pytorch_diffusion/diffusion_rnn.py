@@ -75,7 +75,9 @@ class DiffusionRNN(Diffusion):
         for i in range(number_of_iters):
             print("iter %d"%i)
             # rand_number_timesteps = random.randint(5, self.num_timesteps-1)
-            rand_number_timesteps = 5
+            rand_number_timesteps = random.randint(5, 10)
+            start_step = random.randint(0, self.num_timesteps - rand_number_timesteps - 1)
+            stop_step = start_step + rand_number_timesteps - 1
             x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
             x = x_0
 
@@ -100,7 +102,7 @@ class DiffusionRNN(Diffusion):
             count_accumulate = 0
             loss_iter = 0.0
             loss_accumulate = 0.0
-            for j in range(start, rand_number_timesteps, 1):
+            for j in range(start, stop_step, 1):
                 t = (torch.ones(n) * j).to(self.device)
                 h, hs, temb = self.model.forward_down_mid(x, t)
                 model_sc_output = self.model.forward_up(h, hs, temb)
@@ -110,65 +112,68 @@ class DiffusionRNN(Diffusion):
                     down_sample=False
                 up_sample=True
 
-                h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
-                hx = (h_rnn,c_rnn)
-                h_emb = x_prime
-
-                if h_emb_accumulate is None:
-                    h_emb_accumulate = torch.zeros_like(h_emb).to(self.device)
-                    count_accumulate = 0
-
-                h_emb_accumulate, count_accumulate = avg_accumulate(h_emb_accumulate, count_accumulate, h_emb)
-                c_h_emb_accumulate = c_rnn + torch.rand_like(h_emb_accumulate) * h_emb_accumulate
-
-                accumulate_x_prime = self.model_rnn.forward_dec(c_h_emb_accumulate)
-
-                model_accumulate_output = self.model.forward_up(accumulate_x_prime, hs_0, temb_0)
-                sample_accumulate, mean_accumulate, xpred_accumulate = denoising_step_rnn(
-                                                                model_accumulate_output,
-                                                                x=x,
-                                                                t=t,
-                                                                logvar=self.logvar,
-                                                                sqrt_recip_alphas_cumprod=
-                                                                self.sqrt_recip_alphas_cumprod,
-                                                                sqrt_recipm1_alphas_cumprod=
-                                                                self.sqrt_recipm1_alphas_cumprod,
-                                                                posterior_mean_coef1=self.posterior_mean_coef1,
-                                                                posterior_mean_coef2=self.posterior_mean_coef2,
-                                                                return_pred_xstart=True)
-                model_rnn_output = self.model.forward_up(out_x_prime, hs, temb)
-
-                sample_rnn, mean_rnn, xpred_rnn = denoising_step_rnn(
-                                                                model_rnn_output,
-                                                                x=x,
-                                                                t=t,
-                                                                logvar=self.logvar,
-                                                                sqrt_recip_alphas_cumprod=
-                                                                self.sqrt_recip_alphas_cumprod,
-                                                                sqrt_recipm1_alphas_cumprod=
-                                                                self.sqrt_recipm1_alphas_cumprod,
-                                                                posterior_mean_coef1=self.posterior_mean_coef1,
-                                                                posterior_mean_coef2=self.posterior_mean_coef2,
-                                                                return_pred_xstart=True)
-
                 sample, mean, xpred = denoising_step_rnn(
-                                                model_sc_output=model_sc_output,
-                                                x=x,
-                                                t=t,
-                                                logvar=self.logvar,
-                                                sqrt_recip_alphas_cumprod=self.sqrt_recip_alphas_cumprod,
-                                                sqrt_recipm1_alphas_cumprod=self.sqrt_recipm1_alphas_cumprod,
-                                                posterior_mean_coef1=self.posterior_mean_coef1,
-                                                posterior_mean_coef2=self.posterior_mean_coef2,
-                                                return_pred_xstart=True)
+                    model_sc_output=model_sc_output,
+                    x=x,
+                    t=t,
+                    logvar=self.logvar,
+                    sqrt_recip_alphas_cumprod=self.sqrt_recip_alphas_cumprod,
+                    sqrt_recipm1_alphas_cumprod=self.sqrt_recipm1_alphas_cumprod,
+                    posterior_mean_coef1=self.posterior_mean_coef1,
+                    posterior_mean_coef2=self.posterior_mean_coef2,
+                    return_pred_xstart=True)
 
+                if j >= start_step:
+                    h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
+                    hx = (h_rnn,c_rnn)
+                    h_emb = x_prime
+
+                    # RNN output
+                    model_rnn_output = self.model.forward_up(out_x_prime, hs, temb)
+
+                    sample_rnn, mean_rnn, xpred_rnn = denoising_step_rnn(
+                                                                    model_rnn_output,
+                                                                    x=x,
+                                                                    t=t,
+                                                                    logvar=self.logvar,
+                                                                    sqrt_recip_alphas_cumprod=
+                                                                    self.sqrt_recip_alphas_cumprod,
+                                                                    sqrt_recipm1_alphas_cumprod=
+                                                                    self.sqrt_recipm1_alphas_cumprod,
+                                                                    posterior_mean_coef1=self.posterior_mean_coef1,
+                                                                    posterior_mean_coef2=self.posterior_mean_coef2,
+                                                                    return_pred_xstart=True)
+
+                    # RNN accumulate
+                    if h_emb_accumulate is None:
+                        h_emb_accumulate = torch.zeros_like(h_emb).to(self.device)
+                        count_accumulate = 0
+
+                    h_emb_accumulate, count_accumulate = avg_accumulate(h_emb_accumulate, count_accumulate, h_emb)
+                    c_h_emb_accumulate = c_rnn + torch.rand_like(h_emb_accumulate) * h_emb_accumulate
+
+                    accumulate_x_prime = self.model_rnn.forward_dec(c_h_emb_accumulate)
+
+                    model_accumulate_output = self.model.forward_up(accumulate_x_prime, hs_0, temb_0)
+                    sample_accumulate, mean_accumulate, xpred_accumulate = denoising_step_rnn(
+                                                                    model_accumulate_output,
+                                                                    x=x,
+                                                                    t=t,
+                                                                    logvar=self.logvar,
+                                                                    sqrt_recip_alphas_cumprod=
+                                                                    self.sqrt_recip_alphas_cumprod,
+                                                                    sqrt_recipm1_alphas_cumprod=
+                                                                    self.sqrt_recipm1_alphas_cumprod,
+                                                                    posterior_mean_coef1=self.posterior_mean_coef1,
+                                                                    posterior_mean_coef2=self.posterior_mean_coef2,
+                                                                    return_pred_xstart=True)
+
+                    while len(hs) != 0:
+                        hs.pop()
+
+                    loss_iter = self.loss_function(mean_rnn, mean)
+                    loss_accumulate = self.loss_function(mean_accumulate, mean)
                 x = sample
-
-                while len(hs) != 0:
-                    hs.pop()
-
-                loss_iter = self.loss_function(mean_rnn, mean)
-                loss_accumulate = self.loss_function(mean_accumulate, mean)
             self.optimizer.zero_grad()
             final_loss = loss_iter + loss_accumulate
             final_loss.backward()
