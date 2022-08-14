@@ -172,7 +172,7 @@ class DiffusionRNN(Diffusion):
                 loss_accumulate = self.loss_function(mean_accumulate, mean)
                 self.optimizer.zero_grad()
                 final_loss = loss_iter + loss_accumulate
-                final_loss.backward(accumulate_grad=True)
+                final_loss.backward()
                 self.optimizer.step()
 
 
