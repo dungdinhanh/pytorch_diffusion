@@ -108,7 +108,9 @@ class DiffusionRNN(Diffusion):
                 print("_________________")
                 t = (torch.ones(n) * j).to(self.device)
                 h, hs, temb = self.model.forward_down_mid(x, t)
-                model_sc_output = self.model.forward_up(h.detach(), hs, temb)
+                for k in range(len(hs)):
+                    hs[k].detach()
+                model_sc_output = self.model.forward_up(h.detach(), hs, temb.detach())
                 if j == 1:
                     down_sample=True
                 else:
