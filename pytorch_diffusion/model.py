@@ -372,7 +372,6 @@ class ModelExtract(Model):
     def forward_up(self, h, hs, temb):
         # upsampling
         index_hs = len(hs) - 1
-        print("start____inside forward")
         for i_level in reversed(range(self.num_resolutions)):
             for i_block in range(self.num_res_blocks + 1):
                 h = self.up[i_level].block[i_block](
@@ -390,7 +389,6 @@ class ModelExtract(Model):
         h = self.norm_out(h)
         h = nonlinearity(h)
         h = self.conv_out(h)
-        print("after convo")
         return h
 
 
