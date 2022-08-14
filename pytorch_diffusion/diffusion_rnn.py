@@ -104,12 +104,11 @@ class DiffusionRNN(Diffusion):
             loss_accumulate = 0.0
             for j in range(start, stop_step, 1):
                 print(j)
-                print("%d - %d - %d" %(start_step, stop_step, rand_number_timesteps))
+                print(self.model.require_grad)
                 print("_________________")
                 t = (torch.ones(n) * j).to(self.device)
-                # h, hs, temb = self.model.forward_down_mid(x, t)
-                # model_sc_output = self.model.forward_up(h, hs, temb)
-                model_sc_output = self.model.forward(x, t)
+                h, hs, temb = self.model.forward_down_mid(x, t)
+                model_sc_output = self.model.forward_up(h, hs, temb)
                 if j == 1:
                     down_sample=True
                 else:
