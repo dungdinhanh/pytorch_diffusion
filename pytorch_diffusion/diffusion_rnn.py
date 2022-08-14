@@ -103,6 +103,9 @@ class DiffusionRNN(Diffusion):
             loss_iter = 0.0
             loss_accumulate = 0.0
             for j in range(start, stop_step, 1):
+                print(j)
+                print("%d - %d - %d", start_step, stop_step, rand_number_timesteps)
+                print("_________________")
                 t = (torch.ones(n) * j).to(self.device)
                 h, hs, temb = self.model.forward_down_mid(x, t)
                 model_sc_output = self.model.forward_up(h, hs, temb)
