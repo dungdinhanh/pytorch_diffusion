@@ -164,6 +164,9 @@ class DiffusionRNN(Diffusion):
 
                 x = sample
 
+                while len(hs) != 0:
+                    hs.pop()
+
                 loss_iter += self.loss_function(mean_rnn, mean)
                 loss_accumulate += self.loss_function(mean_accumulate, mean)
             self.optimizer.zero_grad()
