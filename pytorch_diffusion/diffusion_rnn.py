@@ -166,6 +166,7 @@ class DiffusionRNN(Diffusion):
 
                 while len(hs) != 0:
                     hs.pop()
+                    print("pop")
 
                 loss_iter += self.loss_function(mean_rnn, mean)
                 loss_accumulate += self.loss_function(mean_accumulate, mean)
