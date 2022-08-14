@@ -170,10 +170,10 @@ class DiffusionRNN(Diffusion):
 
                 loss_iter += self.loss_function(mean_rnn, mean)
                 loss_accumulate += self.loss_function(mean_accumulate, mean)
-            self.optimizer.zero_grad()
-            final_loss = loss_iter + loss_accumulate
-            final_loss.backward()
-            self.optimizer.step()
+                self.optimizer.zero_grad()
+                final_loss = loss_iter + loss_accumulate
+                final_loss.backward()
+                self.optimizer.step()
 
 
     def inference(self, n):
