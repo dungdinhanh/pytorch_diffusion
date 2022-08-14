@@ -168,8 +168,8 @@ class DiffusionRNN(Diffusion):
                     hs.pop()
                     print(len(hs))
 
-                loss_iter += self.loss_function(mean_rnn, mean)
-                loss_accumulate += self.loss_function(mean_accumulate, mean)
+                loss_iter = self.loss_function(mean_rnn, mean)
+                loss_accumulate = self.loss_function(mean_accumulate, mean)
                 self.optimizer.zero_grad()
                 final_loss = loss_iter + loss_accumulate
                 final_loss.backward()
