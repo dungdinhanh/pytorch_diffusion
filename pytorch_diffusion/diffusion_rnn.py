@@ -69,7 +69,7 @@ class DiffusionRNN(Diffusion):
         self.optimizer = optim.SGD(self.model_rnn.parameters(), lr=lr, weight_decay=weight_decay) # use SGD first
         # will change later to see performance
         self.loss_function = torch.nn.MSELoss(reduction='mean')
-        self.tensorboard_writer = SummaryWriter(os.path.join(save_folder, "log"))
+        self.tensorboard_writer = SummaryWriter(os.path.join(log_folder, "log"))
 
     def training(self, n, number_of_iters=10000):
         self.model_rnn.train()
