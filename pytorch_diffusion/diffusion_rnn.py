@@ -109,18 +109,18 @@ class DiffusionRNN(Diffusion):
                 with torch.no_grad():
                     h, hs, temb = self.model.forward_down_mid(x, t)
 
-                model_sc_output = self.model.forward_up(h, hs, temb)
+                    model_sc_output = self.model.forward_up(h, hs, temb)
 
-                sample, mean, xpred = denoising_step_rnn(
-                    model_sc_output=model_sc_output,
-                    x=x,
-                    t=t,
-                    logvar=self.logvar,
-                    sqrt_recip_alphas_cumprod=self.sqrt_recip_alphas_cumprod,
-                    sqrt_recipm1_alphas_cumprod=self.sqrt_recipm1_alphas_cumprod,
-                    posterior_mean_coef1=self.posterior_mean_coef1,
-                    posterior_mean_coef2=self.posterior_mean_coef2,
-                    return_pred_xstart=True)
+                    sample, mean, xpred = denoising_step_rnn(
+                        model_sc_output=model_sc_output,
+                        x=x,
+                        t=t,
+                        logvar=self.logvar,
+                        sqrt_recip_alphas_cumprod=self.sqrt_recip_alphas_cumprod,
+                        sqrt_recipm1_alphas_cumprod=self.sqrt_recipm1_alphas_cumprod,
+                        posterior_mean_coef1=self.posterior_mean_coef1,
+                        posterior_mean_coef2=self.posterior_mean_coef2,
+                        return_pred_xstart=True)
 
                 if j >= start_step:
                     print("in here")
