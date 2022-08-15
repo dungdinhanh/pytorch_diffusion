@@ -70,6 +70,7 @@ class DiffusionRNN(Diffusion):
         # will change later to see performance
         self.loss_function = torch.nn.MSELoss(reduction='mean')
         self.tensorboard_writer = SummaryWriter(os.path.join(log_folder, "log"))
+        self.log_folder = log_folder
 
     def training(self, n, number_of_iters=10000):
         self.model_rnn.train()
@@ -188,6 +189,14 @@ class DiffusionRNN(Diffusion):
             self.tensorboard_writer.add_scalar("Loss/train", final_loss.item(), i)
             if i % 10 == 0:
                 self.tensorboard_writer.flush()
+            if i % 100 == 0 or i == number_of_iters - 1:
+                state = {
+                    'iter': i,
+                    'optimizer': self.optimizer,
+                    'state_dict': self.model_rnn.state_dict()
+                }
+                model_path = os.path.join(self.log_folder, "models", "iter%d.pth"%i)
+                torch.save(state, model_path)
         self.tensorboard_writer.flush()
         self.tensorboard_writer.close()
 
