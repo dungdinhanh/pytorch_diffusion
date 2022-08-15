@@ -73,11 +73,13 @@ class DiffusionRNN(Diffusion):
         self.model_rnn.train()
         self.model.eval()
         for i in range(number_of_iters):
-            print("iter %d"%i)
+
             # rand_number_timesteps = random.randint(5, self.num_timesteps-1)
             rand_number_timesteps = random.randint(5 , 20)
             start_step = random.randint(0, self.num_timesteps - rand_number_timesteps - 1)
             stop_step = start_step + rand_number_timesteps - 1
+
+            print("iter %d: start at %d and stop at %d, number of step: %d" % (i, start_step, stop_step, rand_number_timesteps))
             x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
             x = x_0
 
@@ -106,8 +108,8 @@ class DiffusionRNN(Diffusion):
                 t = (torch.ones(n) * j).to(self.device)
                 with torch.no_grad():
                     h, hs, temb = self.model.forward_down_mid(x, t)
-                model_sc_output = self.model.forward_up(h, hs, temb)
 
+                model_sc_output = self.model.forward_up(h, hs, temb)
 
                 sample, mean, xpred = denoising_step_rnn(
                     model_sc_output=model_sc_output,
@@ -126,7 +128,6 @@ class DiffusionRNN(Diffusion):
                     else:
                         down_sample=False
                     up_sample=True
-                    print("in here?")
                     h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
                     hx = (h_rnn,c_rnn)
                     h_emb = x_prime
@@ -181,6 +182,7 @@ class DiffusionRNN(Diffusion):
             final_loss = loss_iter + loss_accumulate
             final_loss.backward()
             self.optimizer.step()
+            print(final_loss.item())
 
 
     def inference(self, n):
