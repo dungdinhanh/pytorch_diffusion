@@ -206,6 +206,7 @@ class DiffusionRNN(Diffusion):
 
     def inference(self, n):
         self.model_rnn.eval()
+        self.model.eval()
         x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
         t = (torch.ones(n) * 0).to(self.device)
         h_0, hs_0, temb_0 = self.model.forward_down_mid(x_0, t)
@@ -226,7 +227,7 @@ class DiffusionRNN(Diffusion):
         return x_0 + x_final
 
     @classmethod
-    def from_pretrained(cls, name, train=True ,device=None, log_folder="./runs/"):
+    def from_pretrained(cls, name, train=True ,device=None, log_folder="./runs/", state_path=None):
         cifar10_cfg = {
             "resolution": 32,
             "in_channels": 3,
@@ -281,6 +282,17 @@ class DiffusionRNN(Diffusion):
         diffusion.model.to(diffusion.device)
         diffusion.model.eval()
         print("Moved model to {}".format(diffusion.device))
+
+        print("Loading checkpoint for model rnn {}".format(state_path))
+        if not os.path.isfile(state_path) or state_path is None:
+            print("No state information to load into rnn model")
+            print("Random initialization")
+        else:
+            state = torch.load(state_path)
+            diffusion.model_rnn.load_state_dict(state['state_dict'], map_location=diffusion.device)
+            if train:
+                diffusion.optimizer.load_state_dict(state['optimizer'])
+            diffusion.model_rnn.to(diffusion.device)
         return diffusion
 
 
