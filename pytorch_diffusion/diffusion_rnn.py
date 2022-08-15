@@ -123,6 +123,7 @@ class DiffusionRNN(Diffusion):
                     return_pred_xstart=True)
 
                 if j >= start_step:
+                    print("in here")
                     if j == start_step:
                         down_sample=True
                     else:
