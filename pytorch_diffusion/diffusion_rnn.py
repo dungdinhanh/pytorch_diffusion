@@ -109,11 +109,7 @@ class DiffusionRNN(Diffusion):
                 with torch.no_grad():
                     h, hs, temb = self.model.forward_down_mid(x, t)
                     model_sc_output = self.model.forward_up(h, hs, temb)
-                    if j == 1:
-                        down_sample=True
-                    else:
-                        down_sample=False
-                    up_sample=True
+
 
                     sample, mean, xpred = denoising_step_rnn(
                         model_sc_output=model_sc_output,
@@ -127,6 +123,11 @@ class DiffusionRNN(Diffusion):
                         return_pred_xstart=True)
 
                 if j >= start_step:
+                    if j == start_step:
+                        down_sample=True
+                    else:
+                        down_sample=False
+                    up_sample=True
                     print("in here?")
                     h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
                     hx = (h_rnn,c_rnn)
