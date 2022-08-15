@@ -4,6 +4,7 @@ import torch.optim as optim
 import time
 from   datasets.data_helper import *
 import random
+from torch.utils.tensorboard import SummaryWriter
 
 
 def denoising_step_rnn(model_sc_output, x, t,*,
@@ -48,7 +49,7 @@ def avg_accumulate(h_emb_cal, n, h_emb):
 
 class DiffusionRNN(Diffusion):
     def __init__(self, diffusion_config, model_config, device=None, train=True,
-                 lr=0.01, weight_decay=1e-4, data_loader=None):
+                 lr=0.01, weight_decay=1e-4, data_loader=None, log_folder="./runs"):
         super(DiffusionRNN, self).__init__(diffusion_config=diffusion_config,
                                            model_config=model_config, device=device, extract_version=True)
 
@@ -68,6 +69,7 @@ class DiffusionRNN(Diffusion):
         self.optimizer = optim.SGD(self.model_rnn.parameters(), lr=lr, weight_decay=weight_decay) # use SGD first
         # will change later to see performance
         self.loss_function = torch.nn.MSELoss(reduction='mean')
+        self.tensorboard_writer = SummaryWriter(os.path.join(save_folder, "log"))
 
     def training(self, n, number_of_iters=10000):
         self.model_rnn.train()
@@ -123,7 +125,6 @@ class DiffusionRNN(Diffusion):
                         return_pred_xstart=True)
 
                 if j >= start_step:
-                    print("in here")
                     if j == start_step:
                         down_sample=True
                     else:
@@ -184,6 +185,11 @@ class DiffusionRNN(Diffusion):
             final_loss.backward()
             self.optimizer.step()
             print(final_loss.item())
+            self.tensorboard_writer.add_scalar("Loss/train", final_loss.item(), i)
+            if i % 10 == 0:
+                self.tensorboard_writer.flush()
+        self.tensorboard_writer.flush()
+        self.tensorboard_writer.close()
 
 
     def inference(self, n):
@@ -208,7 +214,7 @@ class DiffusionRNN(Diffusion):
         return x_0 + x_final
 
     @classmethod
-    def from_pretrained(cls, name, train=True ,device=None):
+    def from_pretrained(cls, name, train=True ,device=None, log_folder="./runs/"):
         cifar10_cfg = {
             "resolution": 32,
             "in_channels": 3,
@@ -255,7 +261,7 @@ class DiffusionRNN(Diffusion):
 
         print("Instantiating")
         # later will add rnn configs for training
-        diffusion = cls(diffusion_config, model_config_map[basename], device, train)
+        diffusion = cls(diffusion_config, model_config_map[basename], device, train, log_folder=log_folder)
 
         ckpt = get_ckpt_path(name)
         print("Loading checkpoint {}".format(ckpt))

@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     os.makedirs(save_folder, exist_ok=True)
 
-    diffusion = DiffusionRNN.from_pretrained(name)
+    diffusion = DiffusionRNN.from_pretrained(name, log_folder=save_folder)
 
     diffusion.training(bs, nb)
 
