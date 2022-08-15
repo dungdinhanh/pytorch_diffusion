@@ -75,7 +75,7 @@ class DiffusionRNN(Diffusion):
         for i in range(number_of_iters):
             print("iter %d"%i)
             # rand_number_timesteps = random.randint(5, self.num_timesteps-1)
-            rand_number_timesteps = random.randint(20 , 30)
+            rand_number_timesteps = random.randint(5 , 20)
             start_step = random.randint(0, self.num_timesteps - rand_number_timesteps - 1)
             stop_step = start_step + rand_number_timesteps - 1
             x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
@@ -106,19 +106,19 @@ class DiffusionRNN(Diffusion):
                 t = (torch.ones(n) * j).to(self.device)
                 with torch.no_grad():
                     h, hs, temb = self.model.forward_down_mid(x, t)
-                    model_sc_output = self.model.forward_up(h, hs, temb)
+                model_sc_output = self.model.forward_up(h, hs, temb)
 
 
-                    sample, mean, xpred = denoising_step_rnn(
-                        model_sc_output=model_sc_output,
-                        x=x,
-                        t=t,
-                        logvar=self.logvar,
-                        sqrt_recip_alphas_cumprod=self.sqrt_recip_alphas_cumprod,
-                        sqrt_recipm1_alphas_cumprod=self.sqrt_recipm1_alphas_cumprod,
-                        posterior_mean_coef1=self.posterior_mean_coef1,
-                        posterior_mean_coef2=self.posterior_mean_coef2,
-                        return_pred_xstart=True)
+                sample, mean, xpred = denoising_step_rnn(
+                    model_sc_output=model_sc_output,
+                    x=x,
+                    t=t,
+                    logvar=self.logvar,
+                    sqrt_recip_alphas_cumprod=self.sqrt_recip_alphas_cumprod,
+                    sqrt_recipm1_alphas_cumprod=self.sqrt_recipm1_alphas_cumprod,
+                    posterior_mean_coef1=self.posterior_mean_coef1,
+                    posterior_mean_coef2=self.posterior_mean_coef2,
+                    return_pred_xstart=True)
 
                 if j >= start_step:
                     if j == start_step:
