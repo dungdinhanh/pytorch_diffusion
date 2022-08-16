@@ -138,9 +138,10 @@ class DiffusionRNN(Diffusion):
                         hx = (h_rnn, c_rnn)
                         h_emb = x_prime
                 else:
-                    h_emb = h
+
                     if j == start_step:
                         down_sample=True
+                        h_emb = h
                     else:
                         down_sample=False
                     up_sample=True
