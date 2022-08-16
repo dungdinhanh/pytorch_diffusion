@@ -81,7 +81,7 @@ class DiffusionRNN(Diffusion):
 
             # rand_number_timesteps = random.randint(5, self.num_timesteps-1)
             rand_number_timesteps = random.randint(5 , 20)
-            start_step = random.randint(0, self.num_timesteps - rand_number_timesteps - 1)
+            start_step = random.randint(1, self.num_timesteps - rand_number_timesteps - 1)
             stop_step = start_step + rand_number_timesteps - 1
 
             print("iter %d: start at %d and stop at %d, number of step: %d" % (i, start_step, stop_step, rand_number_timesteps))
@@ -127,7 +127,18 @@ class DiffusionRNN(Diffusion):
                         posterior_mean_coef2=self.posterior_mean_coef2,
                         return_pred_xstart=True)
 
-                if j >= start_step:
+                if j < start_step:
+                    with torch.no_grad():
+                        if j == 1:
+                            down_sample = True
+                        else:
+                            down_sample = False
+                        up_sample = True
+                        h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
+                        hx = (h_rnn, c_rnn)
+                        h_emb = x_prime
+                else:
+                    h_emb = h
                     if j == start_step:
                         down_sample=True
                     else:
