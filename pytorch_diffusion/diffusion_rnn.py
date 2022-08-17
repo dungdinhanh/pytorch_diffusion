@@ -305,8 +305,8 @@ class DiffusionRNN(Diffusion):
         elif not os.path.isfile(state_path):
             print("%s can not be found"%state_path)
         else:
-            state = torch.load(state_path)
-            diffusion.model_rnn.load_state_dict(state['state_dict'], map_location=diffusion.device)
+            state = torch.load(state_path, map_location=diffusion.device)
+            diffusion.model_rnn.load_state_dict(state['state_dict'])
             if train:
                 diffusion.optimizer.load_state_dict(state['optimizer'])
                 diffusion.start_iter = state['iter']
