@@ -181,7 +181,7 @@ class DiffusionRNN(Diffusion):
                     model_accumulate_output = self.model.forward_up(accumulate_x_prime, hs_0, temb_0)
                     sample_accumulate, mean_accumulate, xpred_accumulate = denoising_step_rnn(
                                                                     model_accumulate_output,
-                                                                    x=x,
+                                                                    x=x_0,
                                                                     t=t,
                                                                     logvar=self.logvar,
                                                                     sqrt_recip_alphas_cumprod=
@@ -250,7 +250,7 @@ class DiffusionRNN(Diffusion):
         model_accumulate_output = self.model.forward_up(accumulate_x_prime, hs_0, temb_0)
         sample_accumulate, mean_accumulate, xpred_accumulate = denoising_step_rnn(
             model_accumulate_output,
-            x=x,
+            x=x_0,
             t=t,
             logvar=self.logvar,
             sqrt_recip_alphas_cumprod=
