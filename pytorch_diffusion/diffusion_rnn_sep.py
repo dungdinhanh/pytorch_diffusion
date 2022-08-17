@@ -5,75 +5,14 @@ import time
 from   datasets.data_helper import *
 import random
 from torch.utils.tensorboard import SummaryWriter
+from pytorch_diffusion.diffusion_rnn import *
 
 
-def denoising_step_rnn(model_sc_output, x, t,*,
-                   logvar,
-                   sqrt_recip_alphas_cumprod,
-                   sqrt_recipm1_alphas_cumprod,
-                   posterior_mean_coef1,
-                   posterior_mean_coef2,
-                   return_pred_xstart=False):
-    """
-    Sample from p(x_{t-1} | x_t)
-    """
-    # instead of using eq. (11) directly, follow original implementation which,
-    # equivalently, predicts x_0 and uses it to compute mean of the posterior
-    # 1. predict eps via model
-    model_output = model_sc_output
-    # 2. predict clipped x_0
-    # (follows from x_t=sqrt_alpha_cumprod*x_0 + sqrt_one_minus_alpha*eps)
-    pred_xstart = (extract(sqrt_recip_alphas_cumprod, t, x.shape)*x -
-                   extract(sqrt_recipm1_alphas_cumprod, t, x.shape)*model_output)
-    pred_xstart = torch.clamp(pred_xstart, -1, 1)
-    # 3. compute mean of q(x_{t-1} | x_t, x_0) (eq. (6))
-    mean = (extract(posterior_mean_coef1, t, x.shape)*pred_xstart +
-            extract(posterior_mean_coef2, t, x.shape)*x)
-
-    logvar = extract(logvar, t, x.shape)
-
-    # sample - return mean for t==0
-    noise = torch.randn_like(x)
-    mask = 1-(t==0).float()
-    mask = mask.reshape((x.shape[0],)+(1,)*(len(x.shape)-1))
-    sample = mean + mask*torch.exp(0.5*logvar)*noise
-    sample = sample.float()
-    if return_pred_xstart:
-        return sample, mean, pred_xstart
-    return sample, mean
-
-
-def avg_accumulate(h_emb_cal, n, h_emb):
-    return (h_emb_cal + h_emb)/(n+1), n+1
-
-
-class DiffusionRNN(Diffusion):
+class DiffusionRNNUpperSep(DiffusionRNN):
     def __init__(self, diffusion_config, model_config, device=None, train=True,
                  lr=0.01, weight_decay=1e-4, data_loader=None, log_folder="./runs"):
-        super(DiffusionRNN, self).__init__(diffusion_config=diffusion_config,
-                                           model_config=model_config, device=device, extract_version=True)
-
-        emb_res, emb_channel = self.model.emb_res, self.model.emb_channel
-        self.model_rnn = ModelRNN(emb_res, emb_channel)
-        self.model_rnn.to(self.device)
-        if train:
-            self.model_rnn.train()
-        else:
-            self.model_rnn.eval()
-
-        if train:
-            self.data_loader, _ = get_cifar_loader(train=train, test=False)
-        else:
-            _, self.data_loader = get_cifar_loader(train=train, test=True)
-
-        self.optimizer = optim.SGD(self.model_rnn.parameters(), lr=lr, weight_decay=weight_decay) # use SGD first
-        # will change later to see performance
-        self.loss_function = torch.nn.MSELoss(reduction='mean')
-        self.tensorboard_writer = SummaryWriter(os.path.join(log_folder, "log"))
-        self.log_folder = log_folder
-        self.folder_path = os.path.join(self.log_folder, "models")
-        self.start_iter = None
-        os.makedirs(self.folder_path, exist_ok=True)
+        super(DiffusionRNNUpperSep, self).__init__(diffusion_config, model_config, device, train, lr, weight_decay, data_loader,
+                                                   log_folder)
 
     def training(self, n, number_of_iters=10000):
         self.model_rnn.train()
@@ -336,8 +275,6 @@ class DiffusionRNN(Diffusion):
                 diffusion.start_iter = state['iter']
             diffusion.model_rnn.to(diffusion.device)
         return diffusion
-
-
 
 
     def denoise(self, n, n_steps=None, x=None, curr_step=None,
