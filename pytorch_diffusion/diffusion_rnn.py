@@ -302,7 +302,7 @@ class DiffusionRNN(Diffusion):
         if  state_path is None:
             print("No state information to load into rnn model")
             print("Random initialization")
-        elif os.path.isfile(state_path):
+        elif not os.path.isfile(state_path):
             print("%s can not be found"%state_path)
         else:
             state = torch.load(state_path)
