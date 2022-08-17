@@ -72,12 +72,15 @@ class DiffusionRNN(Diffusion):
         self.tensorboard_writer = SummaryWriter(os.path.join(log_folder, "log"))
         self.log_folder = log_folder
         self.folder_path = os.path.join(self.log_folder, "models")
+        self.start_iter = None
         os.makedirs(self.folder_path, exist_ok=True)
 
     def training(self, n, number_of_iters=10000):
         self.model_rnn.train()
         self.model.eval()
-        for i in range(number_of_iters):
+        if self.start_iter is None:
+            self.start_iter = 0
+        for i in range(self.start_iter, number_of_iters, 1):
 
             # rand_number_timesteps = random.randint(5, self.num_timesteps-1)
             rand_number_timesteps = random.randint(5 , 20)
@@ -306,6 +309,7 @@ class DiffusionRNN(Diffusion):
             diffusion.model_rnn.load_state_dict(state['state_dict'], map_location=diffusion.device)
             if train:
                 diffusion.optimizer.load_state_dict(state['optimizer'])
+                diffusion.start_iter = state['iter']
             diffusion.model_rnn.to(diffusion.device)
         return diffusion
 
