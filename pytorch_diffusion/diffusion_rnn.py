@@ -204,6 +204,8 @@ class DiffusionRNN(Diffusion):
             self.optimizer.step()
             print(final_loss.item())
             self.tensorboard_writer.add_scalar("Loss/train", final_loss.item(), i)
+            self.tensorboard_writer.add_scalar("Loss/train_loss_iter", loss_iter.item(), i)
+            self.tensorboard_writer.add_scalar("Loss/train_loss_accumulate", loss_accumulate.item(), i)
             if i % 10 == 0:
                 self.tensorboard_writer.flush()
             if i % 100 == 0 or i == number_of_iters - 1:
