@@ -209,7 +209,7 @@ class DiffusionRNN(Diffusion):
             if i % 100 == 0 or i == number_of_iters - 1:
                 state = {
                     'iter': i,
-                    'optimizer': self.optimizer,
+                    'optimizer': self.optimizer.state_dict(),
                     'state_dict': self.model_rnn.state_dict()
                 }
 
