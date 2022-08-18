@@ -55,6 +55,7 @@ class DiffusionRNN(Diffusion):
 
         emb_res, emb_channel = self.model.emb_res, self.model.emb_channel
         self.model_rnn = ModelRNN(emb_res, emb_channel)
+        self.test_model = ModelRNN(emb_res, emb_channel)
         self.model_rnn.to(self.device)
         if train:
             self.model_rnn.train()
@@ -112,6 +113,15 @@ class DiffusionRNN(Diffusion):
             count_accumulate = 0
             loss_iter = 0.0
             loss_accumulate = 0.0
+
+            self.test_model.load_state_dict(self.model_rnn.state_dict())
+
+            for name, param in self.model_rnn.named_parameters():
+                print(name)
+                print(param)
+            exit(0)
+
+
             for j in range(start, stop_step, 1):
                 t = (torch.ones(n) * j).to(self.device)
                 with torch.no_grad():
@@ -202,6 +212,10 @@ class DiffusionRNN(Diffusion):
             final_loss = loss_iter + loss_accumulate
             final_loss.backward()
             self.optimizer.step()
+
+
+
+
             print(final_loss.item())
             self.tensorboard_writer.add_scalar("Loss/train", final_loss.item(), i)
             self.tensorboard_writer.add_scalar("Loss/train_loss_iter", loss_iter.item(), i)
