@@ -74,15 +74,14 @@ class DiffusionRNN_IsolateIter(DiffusionRNN):
                         return_pred_xstart=True)
 
                 if j < start_step:
-                    with torch.no_grad():
-                        if j == 1:
-                            down_sample = True
-                        else:
-                            down_sample = False
-                        up_sample = True
-                        h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
-                        hx = (h_rnn, c_rnn)
-                        h_emb = x_prime
+                    if j == 1:
+                        down_sample = True
+                    else:
+                        down_sample = False
+                    up_sample = True
+                    h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
+                    hx = (h_rnn, c_rnn)
+                    h_emb = x_prime
                 else:
 
                     if j == start_step:
