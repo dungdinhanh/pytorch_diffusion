@@ -116,8 +116,9 @@ class DiffusionRNN(Diffusion):
 
             self.test_model.load_state_dict(self.model_rnn.state_dict())
 
-            for name, param in self.model_rnn.named_parameters():
-                print(param)
+            print(self.model_rnn.parameters())
+            # for name, param in self.model_rnn.named_parameters():
+            #     print(name)
             exit(0)
 
 
