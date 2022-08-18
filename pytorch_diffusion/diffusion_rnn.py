@@ -50,9 +50,7 @@ def avg_accumulate(h_emb_cal, n, h_emb):
 def compare_state_dict(model1: torch.nn.Module, model2: torch.nn.Module):
     state_dict1 = model1.state_dict()
     state_dict2 = model2.state_dict()
-    print(state_dict1)
-    exit(0)
-    for item, key in state_dict1:
+    for item, key, _ in state_dict1:
         print(state_dict2[item] - state_dict1[item])
     pass
 
