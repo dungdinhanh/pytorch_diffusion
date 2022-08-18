@@ -125,9 +125,10 @@ class DiffusionRNN(Diffusion):
             count_accumulate = 0
             loss_iter = 0.0
             loss_accumulate = 0.0
-
+            print("start copying_____________________________________")
             self.test_model.load_state_dict(self.model_rnn.state_dict())
             compare_state_dict(self.model_rnn, self.test_model)
+            print("__________________________________________________")
             # for name, param in self.model_rnn.named_parameters():
             #     print(name)
 
@@ -221,7 +222,9 @@ class DiffusionRNN(Diffusion):
             final_loss = loss_iter + loss_accumulate
             final_loss.backward()
             self.optimizer.step()
+            print("After training_________________________________")
             compare_state_dict(self.model_rnn, self.test_model)
+            print("________________________________________________")
 
 
 
