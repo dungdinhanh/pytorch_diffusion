@@ -50,8 +50,11 @@ def avg_accumulate(h_emb_cal, n, h_emb):
 def compare_state_dict(model1: torch.nn.Module, model2: torch.nn.Module):
     state_dict1 = model1.state_dict()
     state_dict2 = model2.state_dict()
+    count = 0
     for key in state_dict1.keys():
         print(state_dict2[key] - state_dict1[key])
+        if count > 5:
+            break
     pass
 
 
@@ -124,14 +127,9 @@ class DiffusionRNN(Diffusion):
             loss_accumulate = 0.0
 
             self.test_model.load_state_dict(self.model_rnn.state_dict())
-
-            print(self.model_rnn.parameters())
             compare_state_dict(self.model_rnn, self.test_model)
             # for name, param in self.model_rnn.named_parameters():
             #     print(name)
-
-            exit(0)
-
 
             for j in range(start, stop_step, 1):
                 t = (torch.ones(n) * j).to(self.device)
@@ -223,7 +221,7 @@ class DiffusionRNN(Diffusion):
             final_loss = loss_iter + loss_accumulate
             final_loss.backward()
             self.optimizer.step()
-
+            compare_state_dict(self.model_rnn, self.test_model)
 
 
 
