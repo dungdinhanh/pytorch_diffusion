@@ -47,6 +47,15 @@ def avg_accumulate(h_emb_cal, n, h_emb):
     return (h_emb_cal + h_emb)/(n+1), n+1
 
 
+def compare_state_dict(model1: torch.nn.Module, model2: torch.nn.Module):
+    state_dict1 = model1.state_dict()
+    state_dict2 = model2.state_dict()
+
+    for item, key in state_dict1:
+        print(state_dict2[item] - state_dict1[item])
+    pass
+
+
 class DiffusionRNN(Diffusion):
     def __init__(self, diffusion_config, model_config, device=None, train=True,
                  lr=0.01, weight_decay=1e-4, data_loader=None, log_folder="./runs"):
@@ -117,10 +126,10 @@ class DiffusionRNN(Diffusion):
             self.test_model.load_state_dict(self.model_rnn.state_dict())
 
             print(self.model_rnn.parameters())
-            for param in self.model_rnn.parameters():
-                print(param)
+            compare_state_dict(self.model_rnn, self.test_model)
             # for name, param in self.model_rnn.named_parameters():
             #     print(name)
+
             exit(0)
 
 
