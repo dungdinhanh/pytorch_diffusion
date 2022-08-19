@@ -13,7 +13,7 @@ class DiffusionRNN_IsolateIter(DiffusionRNN):
                  lr=0.01, weight_decay=1e-4, data_loader=None, log_folder="./runs"):
         super(DiffusionRNN_IsolateIter, self).__init__(diffusion_config, model_config, device, train, lr,
                                                        weight_decay, data_loader, log_folder)
-        self.num_timesteps = 20
+        self.num_timesteps = 10
 
     def training(self, n, number_of_iters=10000):
         self.model_rnn.train()
@@ -23,7 +23,7 @@ class DiffusionRNN_IsolateIter(DiffusionRNN):
         for i in range(self.start_iter, number_of_iters, 1):
 
             # rand_number_timesteps = random.randint(5, self.num_timesteps-1)
-            rand_number_timesteps = 19
+            rand_number_timesteps = 9
             start_step = random.randint(1, self.num_timesteps - rand_number_timesteps)
             stop_step = start_step + rand_number_timesteps - 1
 
