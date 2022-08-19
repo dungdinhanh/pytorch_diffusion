@@ -23,8 +23,8 @@ class DiffusionRNN_IsolateIter(DiffusionRNN):
         for i in range(self.start_iter, number_of_iters, 1):
 
             # rand_number_timesteps = random.randint(5, self.num_timesteps-1)
-            rand_number_timesteps = random.randint(5 , 10)
-            start_step = random.randint(1, self.num_timesteps - rand_number_timesteps - 1)
+            rand_number_timesteps = 19
+            start_step = random.randint(1, self.num_timesteps - rand_number_timesteps)
             stop_step = start_step + rand_number_timesteps - 1
 
             print("iter %d: start at %d and stop at %d, number of step: %d" % (i, start_step, stop_step, rand_number_timesteps))
