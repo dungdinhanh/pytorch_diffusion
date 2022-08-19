@@ -54,6 +54,7 @@ class DiffusionRNN_IsolateIter(DiffusionRNN):
             loss_accumulate = 0.0
             # for name, param in self.model_rnn.named_parameters():
             #     print(name)
+            sample_rnn = None
 
             for j in range(start, stop_step, 1):
                 t = (torch.ones(n) * j).to(self.device)
@@ -90,6 +91,10 @@ class DiffusionRNN_IsolateIter(DiffusionRNN):
                     else:
                         down_sample=False
                     up_sample=True
+                    if sample_rnn is not None:
+                        h_emb = self.model.forward_down_mid(sample_rnn, t)
+                    else:
+                        sample_rnn = x
                     h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
                     hx = (h_rnn,c_rnn)
                     h_emb = x_prime
@@ -99,7 +104,7 @@ class DiffusionRNN_IsolateIter(DiffusionRNN):
 
                     sample_rnn, mean_rnn, xpred_rnn = denoising_step_rnn(
                                                                     model_rnn_output,
-                                                                    x=x,
+                                                                    x=sample_rnn,
                                                                     t=t,
                                                                     logvar=self.logvar,
                                                                     sqrt_recip_alphas_cumprod=
