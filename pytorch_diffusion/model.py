@@ -396,7 +396,7 @@ def sample_newx(h, c, t):
     '''
     Simple schems to achieve new x from h, c and t
     '''
-    random_values = torch.rand_like(h)
+    random_values = torch.ones_like(h)
     return c + random_values * h
 
 
