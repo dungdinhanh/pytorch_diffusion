@@ -92,7 +92,7 @@ class DiffusionRNN_IsolateIter(DiffusionRNN):
                         down_sample=False
                     up_sample=True
                     if sample_rnn is not None:
-                        h_emb = self.model.forward_down_mid(sample_rnn, t)
+                        h_emb, hs_rnn, temb_rnn = self.model.forward_down_mid(sample_rnn, t)
                     else:
                         sample_rnn = x
                     h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
@@ -100,7 +100,7 @@ class DiffusionRNN_IsolateIter(DiffusionRNN):
                     h_emb = x_prime
 
                     # RNN output
-                    model_rnn_output = self.model.forward_up(out_x_prime, hs, temb)
+                    model_rnn_output = self.model.forward_up(out_x_prime, hs_rnn, temb_rnn)
 
                     sample_rnn, mean_rnn, xpred_rnn = denoising_step_rnn(
                                                                     model_rnn_output,
