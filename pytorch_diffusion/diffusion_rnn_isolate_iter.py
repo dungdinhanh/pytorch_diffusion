@@ -91,6 +91,7 @@ class DiffusionRNN_IsolateIter(DiffusionRNN):
                     else:
                         down_sample=False
                     up_sample=True
+                    down_sample=True
                     if sample_rnn is not None:
                         h_emb, hs_rnn, temb_rnn = self.model.forward_down_mid(sample_rnn, t)
                     else:
