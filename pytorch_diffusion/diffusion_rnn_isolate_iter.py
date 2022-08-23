@@ -10,7 +10,7 @@ from pytorch_diffusion.diffusion_rnn import *
 
 class DiffusionRNN_IsolateIter(DiffusionRNN):
     def __init__(self, diffusion_config, model_config, device=None, train=True,
-                 lr=0.01, weight_decay=1e-4, data_loader=None, log_folder="./runs"):
+                 lr=0.1, weight_decay=1e-4, data_loader=None, log_folder="./runs"):
         super(DiffusionRNN_IsolateIter, self).__init__(diffusion_config, model_config, device, train, lr,
                                                        weight_decay, data_loader, log_folder)
         self.num_timesteps = 10
