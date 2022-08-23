@@ -93,7 +93,6 @@ class DiffusionRNN(Diffusion):
         self.model.eval()
         if self.start_iter is None:
             self.start_iter = 0
-        x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
         for i in range(self.start_iter, number_of_iters, 1):
 
             # rand_number_timesteps = random.randint(5, self.num_timesteps-1)
@@ -102,7 +101,7 @@ class DiffusionRNN(Diffusion):
             stop_step = start_step + rand_number_timesteps - 1
 
             print("iter %d: start at %d and stop at %d, number of step: %d" % (i, start_step, stop_step, rand_number_timesteps))
-
+            x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
             x = x_0
 
             t = (torch.ones(n) * 0).to(self.device)
