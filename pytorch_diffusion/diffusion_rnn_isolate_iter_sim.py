@@ -6,14 +6,21 @@ from   datasets.data_helper import *
 import random
 from torch.utils.tensorboard import SummaryWriter
 from pytorch_diffusion.diffusion_rnn import *
+from pytorch_diffusion.model import ModelRNNXE
 
 
-class DiffusionRNN_IsolateIter(DiffusionRNN):
+class DiffusionRNN_IsolateIterSim(DiffusionRNN):
     def __init__(self, diffusion_config, model_config, device=None, train=True,
                  lr=0.001, weight_decay=1e-4, data_loader=None, log_folder="./runs"):
-        super(DiffusionRNN_IsolateIter, self).__init__(diffusion_config, model_config, device, train, lr,
+        super(DiffusionRNN_IsolateIterSim, self).__init__(diffusion_config, model_config, device, train, lr,
                                                        weight_decay, data_loader, log_folder)
-        self.num_timesteps = 10
+        emb_res, emb_channel = self.model.emb_res, self.model.emb_channel
+        self.model_rnn = ModelRNNXE(emb_res, emb_channel)
+        self.model_rnn.to(self.device)
+        if train:
+            self.model_rnn.train()
+        else:
+            self.model_rnn.eval()
 
     def training(self, n, number_of_iters=10000):
         self.model_rnn.train()
@@ -104,26 +111,7 @@ class DiffusionRNN_IsolateIter(DiffusionRNN):
                     h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
                     hx = (h_rnn,c_rnn)
                     h_emb = x_prime
-
-                    # RNN output
-                    model_rnn_output = self.model.forward_up(out_x_prime, hs_rnn, temb_rnn)
-
-                    sample_rnn, mean_rnn, xpred_rnn = denoising_step_rnn(
-                                                                    model_rnn_output,
-                                                                    x=sample_rnn,
-                                                                    t=t,
-                                                                    logvar=self.logvar,
-                                                                    sqrt_recip_alphas_cumprod=
-                                                                    self.sqrt_recip_alphas_cumprod,
-                                                                    sqrt_recipm1_alphas_cumprod=
-                                                                    self.sqrt_recipm1_alphas_cumprod,
-                                                                    posterior_mean_coef1=self.posterior_mean_coef1,
-                                                                    posterior_mean_coef2=self.posterior_mean_coef2,
-                                                                    return_pred_xstart=True)
-                    while len(hs) != 0:
-                        hs.pop()
-
-                    loss_iter = self.loss_function(mean_rnn, mean)
+                    loss_iter = self.loss_function(h_emb, h)
                 x = sample
             self.optimizer.zero_grad()
             final_loss = loss_iter

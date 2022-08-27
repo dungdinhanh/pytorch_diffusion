@@ -66,9 +66,7 @@ class DiffusionRNN(Diffusion):
 
         emb_res, emb_channel = self.model.emb_res, self.model.emb_channel
         self.model_rnn = ModelRNN(emb_res, emb_channel)
-        self.test_model = ModelRNN(emb_res, emb_channel)
         self.model_rnn.to(self.device)
-        self.test_model.to(self.device)
         if train:
             self.model_rnn.train()
         else:

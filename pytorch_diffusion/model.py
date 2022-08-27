@@ -451,8 +451,29 @@ class ModelRNN(nn.Module):
         return out_x_prime
 
 
+class ModelRNNXE(ModelRNN):
+    def __init__(self, emb_features_size, emb_channels, resamp_with_conv=True):
+        super(ModelRNNXE, self).__init__(emb_features_size, emb_channels, resamp_with_conv)
+        self.w_hr = nn.Linear(self.size_rnn_hidden, self.size_rnn_hidden)
+        self.w_cf = nn.Linear(self.size_rnn_hidden, self.size_rnn_hidden)
 
+    def forward(self, x, hx, down_sample=False, up_sample=False):
+        if down_sample:
+            x = self.emb_layer(x)
+        x = torch.flatten(x, start_dim=1)
 
+        # To make sure down sample at the right time
+        assert int(x[0].shape[0]) == self.size_rnn_hidden
+
+        h, c = self.lstm_cell(x, hx)
+        x_prime = torch.sigmoid(self.w_hr(h) + self.w_cf(c)) * torch.rand_like(h)
+        if up_sample:
+            # reshape here
+            re_x_prime = torch.reshape(x_prime, self.size_rnn_io_hidden)
+            out_x_prime = self.dec_layer(re_x_prime)
+        else:
+            out_x_prime = None
+        return h, c, x_prime, out_x_prime
 
 
 
