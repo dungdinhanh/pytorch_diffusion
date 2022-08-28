@@ -103,12 +103,6 @@ class DiffusionRNN_IsolateIterSim(DiffusionRNN):
                         down_sample=False
                     up_sample=True
                     down_sample=False
-                    if sample_rnn is not None:
-                        h_emb, hs_rnn, temb_rnn = self.model.forward_down_mid(sample_rnn, t)
-                    else:
-                        sample_rnn = x
-                        hs_rnn = hs
-                        temb_rnn = temb
                     h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
                     hx = (h_rnn,c_rnn)
                     h_emb = x_prime
