@@ -34,7 +34,8 @@ class DiffusionRNN_IsolateIterSim(DiffusionRNN):
 
             # rand_number_timesteps = random.randint(5, self.num_timesteps-1)
             rand_number_timesteps = 9
-            start_step = random.randint(1, self.num_timesteps - rand_number_timesteps)
+            # start_step = random.randint(1, self.num_timesteps - rand_number_timesteps)
+            start_step = 990
             stop_step = start_step + rand_number_timesteps - 1
 
             print("iter %d: start at %d and stop at %d, number of step: %d" % (i, start_step, stop_step, rand_number_timesteps))
@@ -89,7 +90,7 @@ class DiffusionRNN_IsolateIterSim(DiffusionRNN):
                         down_sample = True
                     else:
                         down_sample = False
-                    up_sample = True
+                    up_sample = False
                     h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
                     hx = (h_rnn, c_rnn)
                     h_emb = x_prime
@@ -101,7 +102,7 @@ class DiffusionRNN_IsolateIterSim(DiffusionRNN):
                     else:
                         down_sample=False
                     up_sample=True
-                    down_sample=True
+                    down_sample=False
                     if sample_rnn is not None:
                         h_emb, hs_rnn, temb_rnn = self.model.forward_down_mid(sample_rnn, t)
                     else:
@@ -111,7 +112,7 @@ class DiffusionRNN_IsolateIterSim(DiffusionRNN):
                     h_rnn, c_rnn, x_prime, out_x_prime = self.model_rnn(h_emb, hx, down_sample, up_sample)
                     hx = (h_rnn,c_rnn)
                     h_emb = x_prime
-                    loss_iter = self.loss_function(h_emb, h)
+                    loss_iter = self.loss_function(out_x_prime, h)
                 x = sample
             self.optimizer.zero_grad()
             final_loss = loss_iter
