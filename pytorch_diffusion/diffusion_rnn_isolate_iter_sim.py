@@ -33,7 +33,7 @@ class DiffusionRNN_IsolateIterSim(DiffusionRNN):
         for i in range(self.start_iter, number_of_iters, 1):
 
             # rand_number_timesteps = random.randint(5, self.num_timesteps-1)
-            rand_number_timesteps = 9
+            rand_number_timesteps = 10
             # start_step = random.randint(1, self.num_timesteps - rand_number_timesteps)
             start_step = 990
             stop_step = start_step + rand_number_timesteps - 1
