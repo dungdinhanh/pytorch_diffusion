@@ -95,10 +95,9 @@ class DiffusionRNN_IsolateIterSim(DiffusionRNN):
                     hx = (h_rnn, c_rnn)
                     h_emb = x_prime
                 else:
-
                     if j == start_step:
                         down_sample=True
-                        h_emb = h
+                        h_emb = x_prime
                     else:
                         down_sample=False
                     up_sample=True
