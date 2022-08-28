@@ -22,6 +22,8 @@ class DiffusionRNN_IsolateIterSim(DiffusionRNN):
         else:
             self.model_rnn.eval()
 
+        self.optimizer = optim.SGD(self.model_rnn.parameters(), lr=lr, weight_decay=weight_decay)  # use SGD first
+
     def training(self, n, number_of_iters=10000):
         self.model_rnn.train()
         self.model.eval()
