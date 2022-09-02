@@ -48,10 +48,10 @@ class ModelReconstruct(nn.Module):
                                         stride=1,
                                         padding=1)
 
-    def forward(self, h):
+    def forward(self, h, temb):
         for i_level in reversed(range(self.num_resolutions)):
             for i_block in range(self.num_res_blocks + 1):
-                h = self.up[i_level].block[i_block](h)
+                h = self.up[i_level].block[i_block](h, temb)
                 if len(self.up[i_level].attn) > 0:
                     h = self.up[i_level].attn[i_block](h)
             if i_level != 0:
