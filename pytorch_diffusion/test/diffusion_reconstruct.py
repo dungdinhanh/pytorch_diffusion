@@ -30,35 +30,38 @@ class DiffusionReconstruct(Diffusion):
         else:
             _, self.data_loader = get_cifar_loader(train=train, test = True, batch_size=bs)
 
-    def training(self, n, number_of_iters=10000):
+    def training(self, n, number_of_iters=100):
         self.model.eval()
         self.decoder_model.train()
-        dataloader_iter = iter(self.data_loader)
+        i_iter = 0
         for i in range(number_of_iters):
+            for j, batch in enumerate(self.data_loader, 0):
             # x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
-            x, _ = next(dataloader_iter)
-            x = x.to(self.device)
-            t = (torch.ones(n) * 1000).to(self.device)
-            h_emb, hs_0, temb_0 = self.model.forward_down_mid(x, t)
-            x_prime = self.decoder_model(h_emb, temb_0)
-            loss_iter = self.loss_function(x_prime, x)
+                x, _ = batch
+                x = x.to(self.device)
+                t = (torch.ones(n) * 1000).to(self.device)
+                h_emb, hs_0, temb_0 = self.model.forward_down_mid(x, t)
+                x_prime = self.decoder_model(h_emb, temb_0)
+                loss_iter = self.loss_function(x_prime, x)
 
-            self.optimizer.zero_grad()
-            final_loss = loss_iter
-            final_loss.backward()
-            self.optimizer.step()
-            print("%d iter: Loss %f"%(i, final_loss.item()))
-            self.tensorboard_writer.add_scalar("Loss/train_loss_iter", loss_iter.item(), i)
-            if i % 100 == 0 or i == number_of_iters - 1:
-                state = {
-                    'iter': i,
-                    'optimizer': self.optimizer.state_dict(),
-                    'state_dict': self.decoder_model.state_dict()
-                }
-                model_path = os.path.join(self.folder_path, "iter%d.pth" % i)
-                torch.save(state, model_path)
-            if i % 10 == 0:
-                self.tensorboard_writer.flush()
+                self.optimizer.zero_grad()
+                final_loss = loss_iter
+                final_loss.backward()
+                self.optimizer.step()
+                print("%d epoch - %d iter: Loss %f"%(i, j, final_loss.item()))
+                self.tensorboard_writer.add_scalar("Loss/train_loss_iter", loss_iter.item(), i_iter)
+
+                if i_iter % 100 == 0 or i_iter == number_of_iters - 1:
+                    state = {
+                        'iter': i,
+                        'optimizer': self.optimizer.state_dict(),
+                        'state_dict': self.decoder_model.state_dict()
+                    }
+                    model_path = os.path.join(self.folder_path, "epoch%diter%d.pth" % (i, j))
+                    torch.save(state, model_path)
+                if i_iter % 10 == 0:
+                    self.tensorboard_writer.flush()
+                i_iter += 1
 
         self.tensorboard_writer.flush()
         self.tensorboard_writer.close()
