@@ -30,7 +30,6 @@ class ModelReconstruct(nn.Module):
                                          temb_channels=self.temb_ch,
                                          dropout=dropout))
                 block_in = block_out
-                print(block_in)
                 if curr_res in attn_resolutions:
                     attn.append(AttnBlock(block_in))
             up = nn.Module()
@@ -40,6 +39,7 @@ class ModelReconstruct(nn.Module):
                 up.upsample = Upsample(block_in, resamp_with_conv)
                 curr_res = curr_res * 2
             self.up.insert(0, up)  # prepend to get consistent order
+        print(block_in)
         exit(0)
         # end
         self.norm_out = Normalize(block_in)
