@@ -11,7 +11,7 @@ from pytorch_diffusion.test.model_test import *
 
 class DiffusionReconstruct(Diffusion):
     def __init__(self, diffusion_config, model_config, device=None, train=True,
-                 lr=0.001, weight_decay=1e-4, data_loader=None, log_folder="./runs"):
+                 lr=0.001, weight_decay=1e-4, data_loader=None, log_folder="./runs", bs=64):
         super(DiffusionReconstruct, self).__init__(diffusion_config, model_config, device, train)
         self.decoder_model = ModelReconstruct(**self.model_config, emb_res=self.model.emb_res,
                                               block_in=self.model.emb_channel)
@@ -26,9 +26,9 @@ class DiffusionReconstruct(Diffusion):
         os.makedirs(self.folder_path, exist_ok=True)
 
         if train:
-            self.data_loader, _ = get_cifar_loader(train=train, test=False)
+            self.data_loader, _ = get_cifar_loader(train=train, test=False, batch_size=bs)
         else:
-            _, self.data_loader = get_cifar_loader(train=train, test = True)
+            _, self.data_loader = get_cifar_loader(train=train, test = True, batch_size=bs)
 
     def training(self, n, number_of_iters=10000):
         self.model.eval()
@@ -108,7 +108,7 @@ class DiffusionReconstruct(Diffusion):
         return sample_accumulate
 
     @classmethod
-    def from_pretrained(cls, name, train=True ,device=None, log_folder="./runs/", state_path=None):
+    def from_pretrained(cls, name, train=True ,device=None, log_folder="./runs/", state_path=None, bs=64):
         cifar10_cfg = {
             "resolution": 32,
             "in_channels": 3,
@@ -155,7 +155,7 @@ class DiffusionReconstruct(Diffusion):
 
         print("Instantiating")
         # later will add rnn configs for training
-        diffusion = cls(diffusion_config, model_config_map[basename], device, train, log_folder=log_folder)
+        diffusion = cls(diffusion_config, model_config_map[basename], device, train, log_folder=log_folder, bs=bs)
 
         ckpt = get_ckpt_path(name)
         print("Loading checkpoint {}".format(ckpt))
