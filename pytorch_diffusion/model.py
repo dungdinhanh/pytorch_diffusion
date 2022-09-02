@@ -343,9 +343,7 @@ class ModelExtract(Model):
 
 
     def forward_down_mid(self, x, t):
-        print(x.shape[2])
-        print(x.shape[3])
-        print(self.resolution)
+        print(x.shape)
         assert x.shape[2] == x.shape[3] == self.resolution
 
         # timestep embedding
