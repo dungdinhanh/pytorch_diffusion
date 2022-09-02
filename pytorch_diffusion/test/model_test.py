@@ -29,6 +29,7 @@ class ModelReconstruct(nn.Module):
                                          out_channels=block_out,
                                          temb_channels=self.temb_ch,
                                          dropout=dropout))
+                print("%d - %d"%(i_block, self.block_in))
                 block_in = block_out
                 if curr_res in attn_resolutions:
                     attn.append(AttnBlock(block_in))
@@ -48,8 +49,10 @@ class ModelReconstruct(nn.Module):
                                         padding=1)
 
     def forward(self, h, temb):
+        print("______________________")
         for i_level in reversed(range(self.num_resolutions)):
             for i_block in range(self.num_res_blocks + 1):
+                print(i_block)
                 h = self.up[i_level].block[i_block](h, temb)
                 if len(self.up[i_level].attn) > 0:
                     h = self.up[i_level].attn[i_block](h)
