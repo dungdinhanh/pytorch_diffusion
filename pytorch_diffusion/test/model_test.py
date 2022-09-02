@@ -32,17 +32,17 @@ class ModelReconstruct(nn.Module):
                 print("%d - %d - %d - %d"%(i_level, i_block, self.block_in, block_out))
                 self.block_in = block_out
                 if curr_res in attn_resolutions:
-                    attn.append(AttnBlock(block_in))
+                    attn.append(AttnBlock(self.block_in))
             up = nn.Module()
             up.block = block
             up.attn = attn
             if i_level != 0:
-                up.upsample = Upsample(block_in, resamp_with_conv)
+                up.upsample = Upsample(self.block_in, resamp_with_conv)
                 curr_res = curr_res * 2
             self.up.insert(0, up)  # prepend to get consistent order
         # end
-        self.norm_out = Normalize(block_in)
-        self.conv_out = torch.nn.Conv2d(block_in,
+        self.norm_out = Normalize(self.block_in)
+        self.conv_out = torch.nn.Conv2d(self.block_in,
                                         out_ch,
                                         kernel_size=3,
                                         stride=1,
