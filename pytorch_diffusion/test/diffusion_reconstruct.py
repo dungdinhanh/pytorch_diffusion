@@ -13,7 +13,8 @@ class DiffusionReconstruct(Diffusion):
     def __init__(self, diffusion_config, model_config, device=None, train=True,
                  lr=0.001, weight_decay=1e-4, data_loader=None, log_folder="./runs"):
         super(DiffusionReconstruct, self).__init__(diffusion_config, model_config, device, train)
-        self.decoder_model = ModelReconstruct(**self.model_config)
+        self.decoder_model = ModelReconstruct(**self.model_config, emb_res=self.model.emb_res,
+                                              block_in=self.model.emb_channel)
         self.decoder_model.to(self.device)
 
         self.optimizer = optim.SGD(self.decoder_model.parameters(), lr=lr, weight_decay=weight_decay)
