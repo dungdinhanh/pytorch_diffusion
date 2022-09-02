@@ -1,10 +1,9 @@
-from pytorch_diffusion.diffusion_rnn import DiffusionRNN
-from pytorch_diffusion.diffusion_rnn_isolate_iter_sim import DiffusionRNN_IsolateIterSim, DiffusionRNN_IsolateIterSim_Rand
+from pytorch_diffusion.test.diffusion_rnn_isolate_iter_sim import DiffusionRNN_IsolateIterSim_Rand
 import os
-import time
 
 if __name__ == "__main__":
-    import sys, tqdm
+    import sys
+
     name = sys.argv[1] if len(sys.argv)>1 else "cifar10"
     bs = int(sys.argv[2]) if len(sys.argv)>2 else 1
     nb = int(sys.argv[3]) if len(sys.argv)>3 else 1

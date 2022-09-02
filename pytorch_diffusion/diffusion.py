@@ -101,6 +101,10 @@ class Diffusion(object):
         self.device = device
         self.model.to(self.device)
 
+        #add for reconstructing
+        self.diffusion_config = diffusion_config
+        self.model_config = model_config
+
 
     def init_diffusion_parameters(self, **config):
         self.model_var_type = config.get("model_var_type", "fixedsmall")

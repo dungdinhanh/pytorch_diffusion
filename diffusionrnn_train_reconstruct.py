@@ -1,4 +1,4 @@
-from pytorch_diffusion.test.diffusion_rnn_isolate_iter import DiffusionRNN_IsolateIter
+from pytorch_diffusion.test.diffusion_reconstruct import *
 import os
 
 if __name__ == "__main__":
@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     os.makedirs(save_folder, exist_ok=True)
 
-    diffusion = DiffusionRNN_IsolateIter.from_pretrained(name, log_folder=save_folder, state_path=rnn_state)
+    diffusion = DiffusionReconstruct.from_pretrained(name, log_folder=save_folder, state_path=rnn_state)
 
     diffusion.training(bs, nb)
 
