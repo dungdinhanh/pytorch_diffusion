@@ -59,9 +59,9 @@ class DiffusionReconstruct(Diffusion):
                     }
                     model_path = os.path.join(self.folder_path, "epoch%diter%d.pth" % (i, j))
                     torch.save(state, model_path)
+                    print("%d epoch - %d iter: Loss %f" % (i, j, final_loss.item()))
                 if i_iter % 10 == 0:
                     self.tensorboard_writer.flush()
-                    print("%d epoch - %d iter: Loss %f" % (i, j, final_loss.item()))
                 i_iter += 1
 
         self.tensorboard_writer.flush()
