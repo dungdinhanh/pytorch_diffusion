@@ -40,7 +40,7 @@ class DiffusionReconstruct(Diffusion):
             x = x.to(self.device)
             t = (torch.ones(n) * 1000).to(self.device)
             h_emb, hs_0, temb_0 = self.model.forward_down_mid(x, t)
-            x_prime = self.decoder_model(h_emb)
+            x_prime = self.decoder_model(h_emb, t)
             loss_iter = self.loss_function(x_prime, x)
 
             self.optimizer.zero_grad()
