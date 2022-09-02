@@ -29,7 +29,7 @@ class ModelReconstruct(nn.Module):
                                          out_channels=block_out,
                                          temb_channels=self.temb_ch,
                                          dropout=dropout))
-                # print("%d - %d - %d - %d"%(i_level, i_block, self.block_in, block_out))
+                print("%d - %d - %d - %d"%(i_level, i_block, self.block_in, block_out))
                 self.block_in = block_out
                 if curr_res in attn_resolutions:
                     attn.append(AttnBlock(block_in))
