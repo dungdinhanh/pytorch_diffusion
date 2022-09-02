@@ -57,7 +57,6 @@ class ModelReconstruct(nn.Module):
                 h = self.up[i_level].upsample(h)
 
         # end
-        print(h.shape)
         h = self.norm_out(h)
         h = nonlinearity(h)
         h = self.conv_out(h)
