@@ -37,7 +37,7 @@ class DiffusionReconstruct(Diffusion):
         for i in range(number_of_iters):
             # x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
             x, _ = next(dataloader_iter)
-            x.to(self.device)
+            x = x.to(self.device)
             t = (torch.ones(n) * 1000).to(self.device)
             h_emb, hs_0, temb_0 = self.model.forward_down_mid(x, t)
             x_prime = self.decoder_model(h_emb)
