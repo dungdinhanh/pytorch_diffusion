@@ -38,8 +38,6 @@ class DiffusionReconstruct(Diffusion):
             for j, batch in enumerate(self.data_loader, 0):
             # x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
                 x, _ = batch
-                if i_iter % 100 == 0:
-                    print(x.shape)
                 x = x.to(self.device)
                 t = (torch.ones(x.shape[0]) * 1000).to(self.device)
                 h_emb, hs_0, temb_0 = self.model.forward_down_mid(x, t)
