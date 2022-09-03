@@ -36,8 +36,11 @@ class DiffusionReconstruct(Diffusion):
         i_iter = 0
         for i in range(number_of_iters):
             for j, batch in enumerate(self.data_loader, 0):
+                if j == 3:
+                    break
             # x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
                 x, _ = batch
+
                 x = x.to(self.device)
                 t = (torch.ones(n) * 1000).to(self.device)
                 h_emb, hs_0, temb_0 = self.model.forward_down_mid(x, t)
@@ -60,6 +63,7 @@ class DiffusionReconstruct(Diffusion):
                     model_path = os.path.join(self.folder_path, "epoch%diter%d.pth" % (i, j))
                     torch.save(state, model_path)
                     print("%d epoch - %d iter: Loss %f" % (i, j, final_loss.item()))
+                    print(x.shape)
                 if i_iter % 10 == 0:
                     self.tensorboard_writer.flush()
                 i_iter += 1
