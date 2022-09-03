@@ -36,8 +36,6 @@ class DiffusionReconstruct(Diffusion):
         i_iter = 0
         for i in range(number_of_iters):
             for j, batch in enumerate(self.data_loader, 0):
-                if j == 3:
-                    break
             # x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
                 x, _ = batch
 
