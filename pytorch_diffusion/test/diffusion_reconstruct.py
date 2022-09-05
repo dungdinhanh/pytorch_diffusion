@@ -7,16 +7,18 @@ import random
 from torch.utils.tensorboard import SummaryWriter
 from pytorch_diffusion.diffusion_rnn import *
 from pytorch_diffusion.test.model_test import *
+from torchvision.utils import save_image
+from pytorch_fid.fid_score import calculate_fid_given_paths
 
 
 class DiffusionReconstruct(Diffusion):
     def __init__(self, diffusion_config, model_config, device=None, train=True,
-                 lr=0.001, weight_decay=1e-4, data_loader=None, log_folder="./runs", bs=64):
+                 lr=0.001, weight_decay=1e-4, data_loader=None, log_folder="./runs", bs=64, load_plain_image=False):
         super(DiffusionReconstruct, self).__init__(diffusion_config, model_config, device, train)
         self.decoder_model = ModelReconstruct(**self.model_config, emb_res=self.model.emb_res,
                                               block_in=self.model.emb_channel)
         self.decoder_model.to(self.device)
-
+        self.train = train
         self.optimizer = optim.SGD(self.decoder_model.parameters(), lr=lr, weight_decay=weight_decay)
 
         self.loss_function = torch.nn.MSELoss(reduction='mean')
@@ -29,6 +31,23 @@ class DiffusionReconstruct(Diffusion):
             self.data_loader, _ = get_cifar_loader(train=train, test=False, batch_size=bs)
         else:
             _, self.data_loader = get_cifar_loader(train=train, test = True, batch_size=bs)
+
+        if load_plain_image:
+            if train:
+                cifar_traintest = datasets.CIFAR10(root="./data", train=True, download=True, transform=None)
+                self.train_plain_folder = os.path.join("./data", "cifar10_train_pi")
+                os.makedirs(self.train_plain_folder, exist_ok=True)
+                for i in range(len(cifar_traintest)):
+                    img, target = cifar_traintest[i]
+                    img.save(os.path.join(self.train_plain_folder, "IMG{:06}.png".format(i)))
+            else:
+                cifar_testset = datasets.CIFAR10(root='./data', train=False, download=True, transform=None)
+                self.test_plain_folder = os.path.join("./data", "cifar10_test_pi")
+                os.makedirs(self.test_plain_folder, exist_ok=True)
+                for i in range(len(cifar_testset)):
+                    img, target = cifar_testset[i]
+                    img.save(os.path.join(self.test_plain_folder, "IMG{:06}.png".format(i)))
+
 
     def training(self, n, number_of_iters=100):
         self.model.eval()
@@ -52,7 +71,6 @@ class DiffusionReconstruct(Diffusion):
                 self.tensorboard_writer.add_scalar("Loss/train_loss_iter", loss_iter.item(), i_iter)
 
                 if i_iter % 100  == 0 or i_iter == number_of_iters - 1:
-
                     print("%d epoch - %d iter: Loss %f" % (i, j, final_loss.item()))
                 if i_iter % 400 == 0 or i_iter == number_of_iters - 1:
                     state = {
@@ -70,53 +88,32 @@ class DiffusionReconstruct(Diffusion):
         self.tensorboard_writer.flush()
         self.tensorboard_writer.close()
 
-    def inference(self, n):
-        self.model_rnn.eval()
+    def inference(self):
+        self.decoder_model.eval()
         self.model.eval()
-        x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
-        t = (torch.ones(n) * 0).to(self.device)
-        h_0, hs_0, temb_0 = self.model.forward_down_mid(x_0, t)
-        h = h_0
-        h_emb_accumulate = None
-        count_accumulate = 0
-        for i in range(self.num_timesteps):
-            downs = False
-            ups=False
-            if i == 0:
-                downs = True
-                hx = None
-            if i == (self.num_timesteps - 1):
-                ups = True
-            h_rnn, c_rnn, h_prime_sample, h_prime = self.model_rnn(h, hx, downs, ups)
-            hx = (h_rnn, c_rnn)
-            h = h_prime_sample
+        self.inference_path = os.path.join(self.log_folder, "inference")
+        os.makedirs(self.inference_path, exist_ok=True)
+        count_image = 0
+        for j, batch in enumerate(self.data_loader, 0):
+            # x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
+            x, _ = batch
+            x = x.to(self.device)
+            t = (torch.ones(x.shape[0]) * 1000).to(self.device)
+            h_emb, hs_0, temb_0 = self.model.forward_down_mid(x, t)
+            x_prime = self.decoder_model(h_emb, temb_0)
+            for i in range(x_prime.shape[0]):
+                save_image(x_prime[i], os.path.join(self.inference_path, "im%d.png"%(count_image)))
+                count_image += 1
 
-            # RNN accumulate
-            if h_emb_accumulate is None:
-                h_emb_accumulate = torch.zeros_like(h).to(self.device)
-                count_accumulate = 0
+        if self.train:
+            target_folder = self.train_plain_folder
+        else:
+            target_folder = self.test_plain_folder
 
-            h_emb_accumulate, count_accumulate = avg_accumulate(h_emb_accumulate, count_accumulate, h)
-        c_h_emb_accumulate = c_rnn + torch.rand_like(h_emb_accumulate) * h_emb_accumulate
-        accumulate_x_prime = self.model_rnn.forward_dec(c_h_emb_accumulate)
-        model_accumulate_output = self.model.forward_up(accumulate_x_prime, hs_0, temb_0)
-        sample_accumulate, mean_accumulate, xpred_accumulate = denoising_step_rnn(
-            model_accumulate_output,
-            x=x_0,
-            t=t,
-            logvar=self.logvar,
-            sqrt_recip_alphas_cumprod=
-            self.sqrt_recip_alphas_cumprod,
-            sqrt_recipm1_alphas_cumprod=
-            self.sqrt_recipm1_alphas_cumprod,
-            posterior_mean_coef1=self.posterior_mean_coef1,
-            posterior_mean_coef2=self.posterior_mean_coef2,
-            return_pred_xstart=True)
-        # must change the return later depends on the design of training
-        return sample_accumulate
+        calculate_fid_given_paths([self.inference_path, target_folder], 256, self.device, num_workers=4)
 
     @classmethod
-    def from_pretrained(cls, name, train=True ,device=None, log_folder="./runs/", state_path=None, bs=64):
+    def from_pretrained(cls, name, train=True ,device=None, log_folder="./runs/", state_path=None, bs=64, load_plain_image=False):
         cifar10_cfg = {
             "resolution": 32,
             "in_channels": 3,
@@ -163,7 +160,8 @@ class DiffusionReconstruct(Diffusion):
 
         print("Instantiating")
         # later will add rnn configs for training
-        diffusion = cls(diffusion_config, model_config_map[basename], device, train, log_folder=log_folder, bs=bs)
+        diffusion = cls(diffusion_config, model_config_map[basename], device, train, log_folder=log_folder, bs=bs,
+                        load_plain_image=load_plain_image)
 
         ckpt = get_ckpt_path(name)
         print("Loading checkpoint {}".format(ckpt))
@@ -180,11 +178,11 @@ class DiffusionReconstruct(Diffusion):
             print("%s can not be found"%state_path)
         else:
             state = torch.load(state_path, map_location=diffusion.device)
-            diffusion.model_rnn.load_state_dict(state['state_dict'])
+            diffusion.decoder_model.load_state_dict(state['state_dict'])
             if train:
                 diffusion.optimizer.load_state_dict(state['optimizer'])
                 diffusion.start_iter = state['iter']
-            diffusion.model_rnn.to(diffusion.device)
+            diffusion.decoder_model.to(diffusion.device)
         return diffusion
 
     def denoise(self, n, n_steps=None, x=None, curr_step=None,
