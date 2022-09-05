@@ -25,6 +25,7 @@ class DiffusionReconstruct(Diffusion):
         self.tensorboard_writer = SummaryWriter(os.path.join(log_folder, "log"))
         self.log_folder = log_folder
         self.folder_path = os.path.join(self.log_folder, "models")
+        self.bs = bs
         os.makedirs(self.folder_path, exist_ok=True)
 
         if train:
@@ -110,7 +111,7 @@ class DiffusionReconstruct(Diffusion):
         else:
             target_folder = self.test_plain_folder
 
-        calculate_fid_given_paths([self.inference_path, target_folder], 256, self.device, num_workers=4)
+        calculate_fid_given_paths([self.inference_path, target_folder], self.bs, self.device, num_workers=4, dims=2048)
 
     @classmethod
     def from_pretrained(cls, name, train=True ,device=None, log_folder="./runs/", state_path=None, bs=64, load_plain_image=False):
