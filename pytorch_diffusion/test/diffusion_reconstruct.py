@@ -74,18 +74,19 @@ class DiffusionReconstruct(Diffusion):
 
                 if i_iter % 100  == 0 or i_iter == number_of_iters - 1:
                     print("%d epoch - %d iter: Loss %f" % (i, j, final_loss.item()))
-                if i % 10 == 0 or i == (number_of_iters - 1):
-                    state = {
-                        'iter': i,
-                        'optimizer': self.optimizer.state_dict(),
-                        'state_dict': self.decoder_model.state_dict()
-                    }
-                    model_path = os.path.join(self.folder_path, "epoch%diter%d.pth" % (i, j))
-                    torch.save(state, model_path)
-
                 if i_iter % 10 == 0:
                     self.tensorboard_writer.flush()
-                i_iter += 1
+            i_iter += 1
+            if i % 10 == 0 or i == (number_of_iters - 1):
+                state = {
+                    'iter': i,
+                    'optimizer': self.optimizer.state_dict(),
+                    'state_dict': self.decoder_model.state_dict()
+                }
+                model_path = os.path.join(self.folder_path, "epoch%diter%d.pth" % (i, j))
+                torch.save(state, model_path)
+
+
 
         self.tensorboard_writer.flush()
         self.tensorboard_writer.close()
