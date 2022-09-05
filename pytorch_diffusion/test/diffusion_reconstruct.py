@@ -72,11 +72,11 @@ class DiffusionReconstruct(Diffusion):
 
                 self.tensorboard_writer.add_scalar("Loss/train_loss_iter", loss_iter.item(), i_iter)
 
-                if i_iter % 100  == 0 or i_iter == number_of_iters - 1:
+                if i_iter % 100  == 0 or i == number_of_iters - 1:
                     print("%d epoch - %d iter: Loss %f" % (i, j, final_loss.item()))
                 if i_iter % 10 == 0:
                     self.tensorboard_writer.flush()
-            i_iter += 1
+                i_iter += 1
             if i % 10 == 0 or i == (number_of_iters - 1):
                 state = {
                     'iter': i,
