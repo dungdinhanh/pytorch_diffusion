@@ -112,7 +112,8 @@ class DiffusionReconstruct(Diffusion):
         else:
             target_folder = self.test_plain_folder
 
-        calculate_fid_given_paths([self.inference_path, target_folder], self.bs, self.device, num_workers=4, dims=2048)
+        fid = calculate_fid_given_paths([self.inference_path, target_folder], self.bs, self.device, num_workers=4, dims=2048)
+        print("FID = %f"%(float(fid)))
 
     @classmethod
     def from_pretrained(cls, name, train=True ,device=None, log_folder="./runs/", state_path=None, bs=64, load_plain_image=False):
