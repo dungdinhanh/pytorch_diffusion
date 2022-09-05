@@ -93,8 +93,8 @@ class DiffusionReconstruct(Diffusion):
     def inference(self):
         self.decoder_model.eval()
         self.model.eval()
-        self.inference_path = os.path.join(self.log_folder, "inference")
-        os.makedirs(self.inference_path, exist_ok=True)
+        self.inference_folder = os.path.join(self.log_folder, "inference")
+        os.makedirs(self.inference_folder, exist_ok=True)
         count_image = 0
         for j, batch in enumerate(self.data_loader, 0):
             # x_0 = torch.randn(n, self.model.in_channels, self.model.resolution, self.model.resolution).to(self.device)
@@ -104,7 +104,7 @@ class DiffusionReconstruct(Diffusion):
             h_emb, hs_0, temb_0 = self.model.forward_down_mid(x, t)
             x_prime = self.decoder_model(h_emb, temb_0)
             for i in range(x_prime.shape[0]):
-                save_image(x_prime[i], os.path.join(self.inference_path, "im%d.png"%(count_image)))
+                save_image(x_prime[i], os.path.join(self.inference_folder, "im%d.png"%(count_image)))
                 count_image += 1
 
         if self.train:

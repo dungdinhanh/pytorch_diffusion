@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     os.makedirs(save_folder, exist_ok=True)
 
-    diffusion = DiffusionReconstruct.from_pretrained(name, train=False, load_plain_image=True ,log_folder=save_folder,
+    diffusion = DiffusionReconstruct.from_pretrained(name, train=True, load_plain_image=True,log_folder=save_folder,
                                                      state_path=rnn_state, bs=bs)
 
     diffusion.inference()
