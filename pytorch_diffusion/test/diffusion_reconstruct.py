@@ -19,7 +19,8 @@ class DiffusionReconstruct(Diffusion):
                                               block_in=self.model.emb_channel)
         self.decoder_model.to(self.device)
         self.train = train
-        self.optimizer = optim.SGD(self.decoder_model.parameters(), lr=lr, weight_decay=weight_decay)
+        if train:
+            self.optimizer = optim.SGD(self.decoder_model.parameters(), lr=lr, weight_decay=weight_decay)
 
         self.loss_function = torch.nn.MSELoss(reduction='mean')
         self.tensorboard_writer = SummaryWriter(os.path.join(log_folder, "log"))
