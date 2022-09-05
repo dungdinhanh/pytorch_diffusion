@@ -10,10 +10,11 @@ if __name__ == "__main__":
     save_folder = str(sys.argv[4]) if len(sys.argv) > 4 else "results"
     rnn_state = str(sys.argv[5]) if len(sys.argv) > 5 else None
     plain_image = str(sys.argv[6]) if len(sys.argv) > 6 else False
+    train = str(sys.argv[7]) if len(sys.argv) > 7 else False
 
     os.makedirs(save_folder, exist_ok=True)
 
-    diffusion = DiffusionReconstruct.from_pretrained(name, train=True, load_plain_image=True,log_folder=save_folder,
+    diffusion = DiffusionReconstruct.from_pretrained(name, train=False, load_plain_image=plain_image,log_folder=save_folder,
                                                      state_path=rnn_state, bs=bs)
 
     diffusion.inference()

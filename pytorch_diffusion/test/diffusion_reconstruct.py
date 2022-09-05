@@ -74,7 +74,7 @@ class DiffusionReconstruct(Diffusion):
 
                 if i_iter % 100  == 0 or i_iter == number_of_iters - 1:
                     print("%d epoch - %d iter: Loss %f" % (i, j, final_loss.item()))
-                if i_iter % 400 == 0 or i_iter == number_of_iters - 1:
+                if i % 10 == 0 or i == (number_of_iters - 1):
                     state = {
                         'iter': i,
                         'optimizer': self.optimizer.state_dict(),
