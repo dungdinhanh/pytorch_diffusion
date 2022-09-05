@@ -14,7 +14,7 @@ from pytorch_fid.fid_score import calculate_fid_given_paths
 class DiffusionReconstruct(Diffusion):
     def __init__(self, diffusion_config, model_config, device=None, train=True,
                  lr=0.001, weight_decay=1e-4, data_loader=None, log_folder="./runs", bs=64, load_plain_image=False):
-        super(DiffusionReconstruct, self).__init__(diffusion_config, model_config, device, train)
+        super(DiffusionReconstruct, self).__init__(diffusion_config, model_config, device, True)
         self.decoder_model = ModelReconstruct(**self.model_config, emb_res=self.model.emb_res,
                                               block_in=self.model.emb_channel)
         self.decoder_model.to(self.device)
