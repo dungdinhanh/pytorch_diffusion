@@ -14,7 +14,7 @@ from pytorch_diffusion.test.diffusion_reconstruct import *
 
 class DiffusionReconstruct1Batch(DiffusionReconstruct):
     def __init__(self, diffusion_config, model_config, device=None, train=True,
-                 lr=0.001, weight_decay=1e-4, data_loader=None, log_folder="./runs", bs=64, load_plain_image=False):
+                 lr=0.01, weight_decay=1e-4, data_loader=None, log_folder="./runs", bs=64, load_plain_image=False):
         super(DiffusionReconstruct1Batch, self).__init__(diffusion_config, model_config, device, train, lr,
                                                          weight_decay,
                                                          data_loader, log_folder, bs, load_plain_image)
