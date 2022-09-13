@@ -49,7 +49,7 @@ class DiffusionReconstruct1BatchRandomInit(DiffusionReconstruct1Batch):
                 if i_iter % 10 == 0:
                     self.tensorboard_writer.flush()
                 i_iter += 1
-                if i % 10 == 0 or i == (number_of_iters - 1):
+                if i % 100 == 0 or i == (number_of_iters - 1):
                     state = {
                         'iter': i,
                         'optimizer': self.optimizer.state_dict(),
@@ -148,8 +148,8 @@ class DiffusionReconstruct1BatchRandomInit(DiffusionReconstruct1Batch):
         diffusion = cls(diffusion_config, model_config_map[basename], device, train, log_folder=log_folder, bs=bs,
                         load_plain_image=load_plain_image)
 
-        ckpt = get_ckpt_path(name)
-        print("Loading checkpoint {}".format(ckpt))
+        # ckpt = get_ckpt_path(name)
+        # print("Loading checkpoint {}".format(ckpt))
         # diffusion.model.load_state_dict(torch.load(ckpt, map_location=diffusion.device))
         diffusion.model.to(diffusion.device)
         diffusion.model.eval()
